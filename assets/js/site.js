@@ -110,7 +110,10 @@
     function act(p) { return page === p ? " is-active" : ""; }
     var header =
       '<div class="container"><nav class="nav">' +
-        '<a class="nav__logo" href="index.html" aria-label="Vandana Travel Experts home"><img src="assets/img/logo.png" alt="Vandana Travel Experts"></a>' +
+        '<a class="nav__logo" href="index.html" aria-label="Vandana Travel Experts home">' +
+          '<img src="assets/img/logo.png" alt="Vandana Travel Experts logo">' +
+          '<span class="nav__logo-text"><span class="ln"><b>Vandana</b> Travel Experts</span><small>We Keep it Simple</small></span>' +
+        "</a>" +
         '<button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false"><span></span></button>' +
         '<ul class="nav__menu">' +
           '<li class="nav__item"><a class="nav__link' + act("home") + '" href="index.html">Home</a></li>' +
