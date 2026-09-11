@@ -332,6 +332,11 @@
     document.querySelectorAll(".reveal:not(.in)").forEach(function (el) { if (revealObs) revealObs.observe(el); });
   }
   function initObservers() {
+    if (!("IntersectionObserver" in window)) {
+      document.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("in"); });
+      document.querySelectorAll("[data-count]").forEach(countUp);
+      return;
+    }
     revealObs = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (e.isIntersecting) { e.target.classList.add("in"); revealObs.unobserve(e.target); }
@@ -346,6 +351,15 @@
       });
     }, { threshold: 0.4 });
     document.querySelectorAll("[data-stats]").forEach(function (s) { statObs.observe(s); });
+
+    // Failsafe: if nothing has revealed shortly after load (e.g. observer never
+    // fired), reveal everything so content is never left invisible.
+    setTimeout(function () {
+      if (!document.querySelector(".reveal.in")) {
+        document.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("in"); });
+        document.querySelectorAll("[data-stats] [data-count]").forEach(countUp);
+      }
+    }, 1600);
   }
 
   /* ---------- Newsletter / contact form (front-end only) ---------- */
