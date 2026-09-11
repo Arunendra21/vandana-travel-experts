@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vandana Travel Experts — Explore India & Beyond</title>
+  <meta name="description" content="Vandana Travel Experts — trusted travel management company with 25+ years of experience. Customized domestic & international tour packages, visa assistance, corporate travel and MICE events.">
+  <link rel="icon" type="image/png" href="assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+  <header id="site-header" class="site-header"></header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="top">
+    <div class="hero__slides">
+      <div class="hero__slide" style="background-image:url('assets/img/dest-kashmir.png')"></div>
+      <div class="hero__slide" style="background-image:url('assets/img/dest-thailand.png')"></div>
+      <div class="hero__slide" style="background-image:url('assets/img/dest-dubai.png')"></div>
+      <div class="hero__slide" style="background-image:url('assets/img/dest-europe.png')"></div>
+    </div>
+    <div class="container">
+      <div class="hero__inner">
+        <span class="hero__badge"><span class="dot"></span> Trusted by travellers throughout India</span>
+        <h1>Explore India &amp; Beyond with <span class="grad">Trusted Travel Experts</span></h1>
+        <p class="hero__text">Customized tour packages and hassle-free travel planning — visa assistance, flights, hotels and complete travel solutions for families, couples, groups and corporates.</p>
+        <div class="hero__actions">
+          <a class="btn btn--gold" href="#international">Explore Packages</a>
+          <a class="btn btn--ghost" href="contact.html">Plan My Trip</a>
+        </div>
+        <form class="hero__search" role="search" onsubmit="location.href='contact.html';return false;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" placeholder="Where do you want to go? e.g. Dubai, Kerala, Europe…" aria-label="Search destinations">
+          <button class="btn btn--primary btn--sm" type="submit">Search</button>
+        </form>
+      </div>
+    </div>
+    <div class="hero__scroll"><span>Scroll</span><span class="mouse"></span></div>
+    <div class="hero__marquee">
+      <div class="marquee__track">
+        <span>Europe</span><span>Australia</span><span>Ladakh</span><span>Sikkim</span><span>Dubai</span><span>America</span><span>Japan</span><span>Kerala</span><span>Bhutan</span><span>Thailand</span><span>Kashmir</span><span>Ooty</span>
+        <span>Europe</span><span>Australia</span><span>Ladakh</span><span>Sikkim</span><span>Dubai</span><span>America</span><span>Japan</span><span>Kerala</span><span>Bhutan</span><span>Thailand</span><span>Kashmir</span><span>Ooty</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURE STRIP ============ -->
+  <section class="features">
+    <div class="container">
+      <div class="features__grid">
+        <div class="feature-card reveal" data-delay="1">
+          <div class="feature-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V3h10z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div>
+          <div><h3>Best Price Guaranteed</h3><p>Unlock unbeatable deals on flights, hotels &amp; holiday packages.</p></div>
+        </div>
+        <div class="feature-card reveal" data-delay="2">
+          <div class="feature-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg></div>
+          <div><h3>5000+ Destinations</h3><p>Discover a world of possibilities, one destination at a time.</p></div>
+        </div>
+        <div class="feature-card reveal" data-delay="3">
+          <div class="feature-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <div><h3>Exceptional Service</h3><p>Our team offers top-notch support whenever you need it.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ POPULAR DESTINATIONS ============ -->
+  <section class="section" id="destinations">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Top picks</span>
+        <h2 class="section-title">Popular <span class="accent">Destinations</span></h2>
+        <p class="section-sub">Handpicked destinations loved by our travellers — from Himalayan escapes to world-famous cities.</p>
+      </div>
+      <div class="dest-grid" id="dest-grid"></div>
+    </div>
+  </section>
+
+  <!-- ============ PACKAGES (tabs) ============ -->
+  <section class="section section--soft" id="international">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Curated holidays</span>
+        <h2 class="section-title">Tours &amp; <span class="accent">Packages</span></h2>
+        <p class="section-sub">All-inclusive itineraries with flights, stays, sightseeing and transfers — secure your visa hassle-free with our comprehensive service.</p>
+      </div>
+      <div class="pkg-tabs reveal">
+        <button class="pkg-tab is-active" data-target="pkg-intl">International Tours</button>
+        <button class="pkg-tab" data-target="pkg-dom">Domestic Tours</button>
+      </div>
+      <div class="pkg-panel is-active" id="pkg-intl"><div class="pkg-grid" id="pkg-intl-grid" aria-label="International packages"></div></div>
+      <div class="pkg-panel" id="pkg-dom"><div class="pkg-grid" id="pkg-dom-grid" aria-label="Domestic packages"></div></div>
+    </div>
+    <span id="domestic"></span>
+  </section>
+
+  <!-- ============ ABOUT PREVIEW + STATS ============ -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="about-split">
+        <div class="about-media reveal">
+          <div class="about-media__deco"></div>
+          <div class="about-media__img"><img src="assets/img/about-team.jpg" alt="Vandana Travel Experts destinations"></div>
+          <div class="about-media__badge">
+            <span class="num">25<span style="color:var(--gold)">+</span></span>
+            <span class="lbl">Years of travel expertise</span>
+          </div>
+        </div>
+        <div class="about-copy reveal" data-delay="1">
+          <span class="eyebrow">About Us</span>
+          <h2 class="section-title">Making Travel Easy &amp; <span class="accent">Affordable</span></h2>
+          <p>Founded by industry veterans with over 25 years of experience in the travel and aviation sector, Vandana Travel Experts offers complete travel solutions — from luxury holidays and corporate travel to large-scale MICE events — designed with precision, expertise and care.</p>
+          <div class="about-points">
+            <div class="about-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b>Personalized Itineraries</b><p>Crafted around your budget &amp; schedule.</p></div></div>
+            <div class="about-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b>Global Partners</b><p>Associate offices across the world.</p></div></div>
+            <div class="about-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b>Corporate &amp; MICE</b><p>Meetings, incentives &amp; conferences.</p></div></div>
+            <div class="about-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b>IATA / TAAI Affiliated</b><p>Recognized by the Ministry of Tourism.</p></div></div>
+          </div>
+          <a class="btn btn--primary" href="about.html">More About Us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATS BANNER ============ -->
+  <section class="section--tight">
+    <div class="container">
+      <div class="cta-banner" data-stats style="padding:56px 8%">
+        <div class="stats stats--onblue">
+          <div class="stat"><div class="stat__num"><span data-count="25">0</span><span class="suffix">+</span></div><div class="stat__label">Years Experience</div></div>
+          <div class="stat"><div class="stat__num"><span data-count="50">0</span><span class="suffix">K+</span></div><div class="stat__label">Happy Clients</div></div>
+          <div class="stat"><div class="stat__num"><span data-count="100">0</span><span class="suffix">+</span></div><div class="stat__label">Destinations</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SERVICES ============ -->
+  <section class="section section--soft" id="services">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">What we do</span>
+        <h2 class="section-title">Complete <span class="accent">Travel Services</span></h2>
+        <p class="section-sub">One stop for everything your journey needs.</p>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card reveal" data-delay="1"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a1 1 0 0 0-.9 1.7l4.6 3.6-1.7 2.9-2.5-.3a1 1 0 0 0-.9 1.6l2 2 2 2a1 1 0 0 0 1.6-.9l-.3-2.5 2.9-1.7 3.6 4.6a1 1 0 0 0 1.7-.9z"/></svg></div><h4>Flights</h4></div>
+        <div class="svc-card reveal" data-delay="1"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 21V7l8-4 8 4v14M9 21v-4h6v4"/><path d="M9 9h.01M15 9h.01"/></svg></div><h4>Hotels</h4></div>
+        <div class="svc-card reveal" data-delay="2"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v11M4 17h16M4 11h16"/><circle cx="8" cy="14.5" r="1"/><circle cx="16" cy="14.5" r="1"/></svg></div><h4>Bus &amp; Cabs</h4></div>
+        <div class="svc-card reveal" data-delay="2"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></div><h4>Holidays</h4></div>
+        <div class="svc-card reveal" data-delay="3"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h4M7 12h6"/><circle cx="17" cy="9" r="2"/></svg></div><h4>Visa Assistance</h4></div>
+        <div class="svc-card reveal" data-delay="3"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg></div><h4>Insurance</h4></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CORPORATE / MICE ============ -->
+  <section class="section" id="corporate">
+    <div class="container">
+      <div class="about-split">
+        <div class="about-copy reveal">
+          <span class="eyebrow">Corporate Travel</span>
+          <h2 class="section-title">MICE &amp; Corporate <span class="accent">Events</span></h2>
+          <p>From product launches and annual meets to international conferences and incentive travel — we bring business events to life with the perfect blend of creativity, logistics and flawless execution. Recognized among the top MICE companies in Mumbai.</p>
+          <div class="about-points">
+            <div class="about-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b>Meetings &amp; Conferences</b><p>End-to-end event management.</p></div></div>
+            <div class="about-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b>Incentive Travel</b><p>Reward your teams in style.</p></div></div>
+            <div class="about-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b>Destination Weddings</b><p>Décor to planning, every detail.</p></div></div>
+            <div class="about-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b>Corporate Ticketing</b><p>Groups &amp; day trips managed.</p></div></div>
+          </div>
+          <a class="btn btn--primary" href="contact.html">Talk to Our Team</a>
+        </div>
+        <div class="about-media reveal" data-delay="1">
+          <div class="about-media__deco"></div>
+          <div class="about-media__img"><img src="assets/img/dest-dubai.png" alt="Corporate travel and MICE events"></div>
+          <div class="about-media__badge"><span class="num">Top 100</span><span class="lbl">MICE companies in Mumbai</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TESTIMONIALS ============ -->
+  <section class="section section--soft">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Testimonials</span>
+        <h2 class="section-title">What Our <span class="accent">Travellers Say</span></h2>
+        <p class="section-sub">Real experiences from families, couples and corporates we've served.</p>
+      </div>
+      <div class="testi reveal">
+        <div class="testi__viewport"><div class="testi__track" id="testi-track"></div></div>
+        <div class="testi__nav">
+          <button class="testi__btn" id="testi-prev" aria-label="Previous"></button>
+          <button class="testi__btn" id="testi-next" aria-label="Next"></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="section--tight">
+    <div class="container">
+      <div class="cta-banner reveal">
+        <h2>Ready to Start Your Next Journey?</h2>
+        <p>Let us take care of your journey while you focus on enjoying every moment. Get a personalized quote today.</p>
+        <a class="btn btn--gold" href="contact.html">Get a Free Quote</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NEWSLETTER ============ -->
+  <section class="section--tight">
+    <div class="container">
+      <div class="newsletter reveal">
+        <div>
+          <h2>Get Updates &amp; More</h2>
+          <p>Subscribe to our newsletter and get the latest updates on heavily discounted travel deals and exclusive offers worldwide.</p>
+        </div>
+        <div>
+          <form class="newsletter__form" data-form="newsletter">
+            <input type="email" name="email" placeholder="sample@mail.com" required aria-label="Email address">
+            <button class="btn btn--primary" type="submit">Subscribe</button>
+          </form>
+          <div class="form-msg" role="status"></div>
+          <p class="newsletter__note">We respect your privacy. Unsubscribe anytime.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="site-footer" class="footer"></footer>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>
