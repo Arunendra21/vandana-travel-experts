@@ -127,8 +127,7 @@
             '<div class="footer__socials">' +
               '<a href="https://facebook.com/vandanatravelexperts" target="_blank" rel="noopener" aria-label="Facebook">' + I.fb + "</a>" +
               '<a href="#" aria-label="Twitter">' + I.tw + "</a>" +
-              '<a href="#" aria-label="Instagram">' + I.insta + "</a>" +
-              '<a href="#" aria-label="YouTube">' + I.yt + "</a>" +
+              '<a href="https://instagram.com/vandanatravelexperts" target="_blank" rel="noopener" aria-label="Instagram">' + I.insta + "</a>" +
               '<a href="https://wa.me/' + WA + '" aria-label="WhatsApp">' + I.wa + "</a>" +
             "</div>" +
           "</div>" +
