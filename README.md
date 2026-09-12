@@ -26,17 +26,43 @@ built as a **static site** (plain HTML, CSS & vanilla JavaScript) — no PHP, no
 
 ## 📧 Email delivery (important — one-time setup)
 
-The contact form and the Book Now form send real email to **vandanatravelexperts@gmail.com** via
-[FormSubmit](https://formsubmit.co) — a service that works on static sites with **no backend and no API
-keys in the code**. Because there is no server, this is the production-appropriate mechanism here.
+The contact form and the Book Now form deliver real email to **vandanatravelexperts@gmail.com**.
+Everything below is **100% free** and needs **no backend / no server**.
 
-**One-time activation:** the first time any form is submitted, FormSubmit emails a confirmation link to
-`vandanatravelexperts@gmail.com`. **Open that email once and click "Activate"** — after that, every
-submission is delivered to the inbox automatically. Until it is activated, the form shows the
-FormSubmit confirmation message instead of a fake success.
+### Recommended: spam-proof email with OTP verification (EmailJS — free)
 
-To change the destination address, edit `FORM_ACTION` / `EMAIL` at the top of
-[`assets/js/site.js`](assets/js/site.js).
+The forms support **email verification**: the visitor gets a **6-digit code emailed to them**, and the
+enquiry (with the package they were viewing) is only sent to your Gmail **after they enter the correct
+code**. Bots can't complete this, so it stops form spam. This uses [EmailJS](https://www.emailjs.com)'s
+**free tier** (200 emails/month) — no paid plan, no server.
+
+**One-time setup (~5 minutes):**
+
+1. Create a free account at **[emailjs.com](https://www.emailjs.com)**.
+2. **Email Services → Add** → connect your **Gmail** (`vandanatravelexperts@gmail.com`). Note the
+   **Service ID**.
+3. **Email Templates → Create** two templates:
+   - **OTP template** — set the template's **To** field to `{{to_email}}`, and put `{{passcode}}` in the
+     body (e.g. "Your Vandana Travel Experts verification code is **{{passcode}}**"). Note its **Template ID**.
+   - **Enquiry template** — set **To** to `vandanatravelexperts@gmail.com`, and use these variables in the
+     body: `{{form_type}} {{name}} {{email}} {{phone}} {{package}} {{travellers}} {{travel_date}}
+     {{message}} {{submitted}}`. Note its **Template ID**.
+4. **Account → General** → copy your **Public Key**.
+5. Open [`assets/js/site.js`](assets/js/site.js), find the `CONFIG` block near the top, and paste the four
+   values: `publicKey`, `serviceId`, `otpTemplate`, `enquiryTemplate`.
+6. In EmailJS → **Account → Security**, set **Allowed Origins** to your site's domain
+   (`arunendra21.github.io` and any custom domain) so the public key can't be misused elsewhere.
+
+That's it — verification turns on automatically once the four keys are filled in.
+
+### Fallback: FormSubmit (works out of the box, also free)
+
+Until the EmailJS keys are added, the forms use [FormSubmit](https://formsubmit.co) instead. The first
+submission emails a one-time **"Activate"** link to `vandanatravelexperts@gmail.com`; click it once and
+all future submissions are delivered. (EmailJS is recommended because it adds the OTP anti-spam step.)
+
+Both paths also include a hidden **honeypot** and a **time-trap** that silently block automated bots.
+To change the destination address, edit `EMAIL` at the top of `assets/js/site.js`.
 
 ## 📁 Structure
 

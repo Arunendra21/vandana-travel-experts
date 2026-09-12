@@ -17,6 +17,33 @@
      must click the one-time activation link FormSubmit emails on first submit. */
   var FORM_ACTION = "https://formsubmit.co/ajax/" + EMAIL;
 
+  /* -----------------------------------------------------------------
+     EMAIL VERIFICATION (free, no backend, no paid plan) via EmailJS.
+     When configured, every enquiry requires a 6-digit code emailed to
+     the visitor — this blocks bots/spam and confirms a real inbox.
+     The enquiry (with the selected package) is then emailed to the
+     office Gmail. Until the keys below are filled in, forms fall back
+     to FormSubmit. Get free keys at https://www.emailjs.com (see README).
+     These are PUBLIC browser keys by design — restrict "Allowed Origins"
+     to your domain in the EmailJS dashboard to prevent misuse. --------- */
+  var CONFIG = {
+    emailjs: {
+      publicKey: "",        // EmailJS Public Key
+      serviceId: "",        // EmailJS Service ID (your connected Gmail)
+      otpTemplate: "",      // template that emails {{passcode}} to {{to_email}} (the visitor)
+      enquiryTemplate: ""   // template that emails the enquiry to the office Gmail
+    }
+  };
+  function emailjsOn() { return !!(CONFIG.emailjs.publicKey && CONFIG.emailjs.serviceId && CONFIG.emailjs.otpTemplate && CONFIG.emailjs.enquiryTemplate); }
+  function loadEmailJS() {
+    if (!emailjsOn() || window.emailjs || document.getElementById("emailjs-sdk")) return;
+    var s = document.createElement("script"); s.id = "emailjs-sdk";
+    s.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
+    s.onload = function () { try { window.emailjs.init({ publicKey: CONFIG.emailjs.publicKey }); } catch (e) {} };
+    document.head.appendChild(s);
+  }
+  window.VTE_CONFIG = CONFIG; // allow overriding keys from an external config if desired
+
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function qs(name) { var m = new RegExp("[?&]" + name + "=([^&]*)").exec(location.search); return m ? decodeURIComponent(m[1].replace(/\+/g, " ")) : ""; }
 
@@ -379,52 +406,129 @@
     });
   }
 
-  /* ================= FORMS (real email via FormSubmit) ================= */
+  /* ================= FORMS (OTP-verified email; FormSubmit fallback) ================= */
+  function val(f, n) { var el = f.querySelector("[name=" + n + "]"); return el ? el.value.trim() : ""; }
+  function setBtn(btn, loading) { if (btn) { btn.disabled = loading; btn.classList.toggle("is-loading", loading); } }
+  function validateRequired(f, msg) {
+    var invalid = null;
+    f.querySelectorAll("[required]").forEach(function (el) {
+      if (el.name === "otp") return;
+      if (!el.value.trim() || (el.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value))) { if (!invalid) invalid = el; el.classList.add("is-err"); }
+      else el.classList.remove("is-err");
+    });
+    if (invalid) { if (msg) { msg.textContent = "Please fill the highlighted fields correctly."; msg.className = "form-msg err"; } invalid.focus(); }
+    return !invalid;
+  }
+  function genCode() { return "" + Math.floor(100000 + Math.random() * 900000); }
+  function enquiryParams(f, type) {
+    return {
+      to_email: EMAIL, reply_to: val(f, "email"), form_type: type === "booking" ? "Booking / Package enquiry" : "Website enquiry",
+      name: val(f, "name"), email: val(f, "email"), phone: val(f, "phone"),
+      package: val(f, "package") || "—", travellers: val(f, "travellers") || "—",
+      travel_date: val(f, "travel_date") || "—", message: val(f, "message") || "—",
+      submitted: new Date().toLocaleString()
+    };
+  }
+
   function initForm(f) {
     if (!f || f.__wired) return; f.__wired = true;
+    var type = f.getAttribute("data-form");
+    f.__loadedAt = Date.now();
+    // inject honeypot if missing
+    if (!f.querySelector('[name="_honey"]')) {
+      var hp = document.createElement("input");
+      hp.type = "text"; hp.name = "_honey"; hp.tabIndex = -1; hp.autocomplete = "off";
+      hp.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px;opacity:0";
+      f.appendChild(hp);
+    }
+    // OTP UI (only for contact & booking, when EmailJS is configured)
+    if (emailjsOn() && (type === "contact" || type === "booking")) {
+      var box = document.createElement("div");
+      box.className = "otp-box"; box.hidden = true;
+      box.innerHTML =
+        '<label>Enter the 6-digit code we emailed you</label>' +
+        '<div class="otp-row"><input class="otp-input" name="otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="● ● ● ● ● ●">' +
+        '<button type="button" class="otp-resend">Resend</button></div>' +
+        '<small class="otp-hint"></small>';
+      var submitBtn = f.querySelector('button[type="submit"]');
+      f.insertBefore(box, submitBtn);
+      box.querySelector(".otp-resend").addEventListener("click", function () { startVerification(f, true); });
+    }
+
     f.addEventListener("submit", function (e) {
       e.preventDefault();
-      var type = f.getAttribute("data-form");
       var msg = f.querySelector(".form-msg");
-      var btn = f.querySelector('button[type="submit"]');
-      // basic validation
-      var invalid = null;
-      f.querySelectorAll("[required]").forEach(function (el) {
-        if (!el.value.trim() || (el.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value))) { if (!invalid) invalid = el; el.classList.add("is-err"); }
-        else el.classList.remove("is-err");
-      });
-      if (invalid) { if (msg) { msg.textContent = "Please fill the highlighted fields correctly."; msg.className = "form-msg err"; } invalid.focus(); return; }
+      // honeypot: pretend success, do nothing
+      var hpv = f.querySelector('[name="_honey"]'); if (hpv && hpv.value) { showSuccess(f, type, msg); return; }
+      // time-trap: forms filled in under 2.5s are almost certainly bots
+      if (Date.now() - (f.__loadedAt || 0) < 2500) { if (msg) { msg.textContent = "Please take a moment to complete the form."; msg.className = "form-msg err"; } f.__loadedAt = Date.now() - 2500; return; }
+      if (!validateRequired(f, msg)) return;
 
-      var fd = new FormData(f);
-      var subject = type === "booking" ? "New Booking Enquiry — " + (fd.get("package") || "Package") :
-                    type === "contact" ? "New Website Enquiry from " + (fd.get("name") || "") :
-                    "Newsletter subscription";
-      fd.append("_subject", subject);
-      fd.append("_template", "table");
-      fd.append("_captcha", "false");
-      fd.append("Source", type + " form · travelvandana");
+      // Newsletter and un-configured EmailJS → FormSubmit path
+      if (type === "newsletter" || !emailjsOn()) { submitViaFormSubmit(f, type, msg); return; }
 
-      if (btn) { btn.disabled = true; btn.classList.add("is-loading"); }
-      if (msg) { msg.textContent = "Sending…"; msg.className = "form-msg"; }
-
-      fetch(FORM_ACTION, { method: "POST", body: fd, headers: { Accept: "application/json" } })
-        .then(function (r) { return r.json().catch(function () { return {}; }); })
-        .then(function (d) {
-          if (d && (d.success === true || d.success === "true")) {
-            showSuccess(f, type, msg);
-          } else {
-            // Not activated yet or relay message
-            if (msg) { msg.textContent = (d && d.message) ? d.message : "We couldn't send right now. Please email " + EMAIL + " or WhatsApp us."; msg.className = "form-msg err"; }
-            if (btn) { btn.disabled = false; btn.classList.remove("is-loading"); }
-          }
-        })
-        .catch(function () {
-          // network blocked — offer mailto fallback so the user is never stuck
-          if (msg) { msg.innerHTML = 'Network issue. <a href="mailto:' + EMAIL + '">Email us directly</a> or WhatsApp ' + PHONE + "."; msg.className = "form-msg err"; }
-          if (btn) { btn.disabled = false; btn.classList.remove("is-loading"); }
-        });
+      var otp = f.__otp;
+      if (!otp || otp.email !== val(f, "email")) { startVerification(f, false); return; }
+      // verify code
+      var entered = (val(f, "otp") || "").trim();
+      if (entered !== otp.code) { if (msg) { msg.textContent = "That code is incorrect. Please check your email and try again."; msg.className = "form-msg err"; } return; }
+      sendEnquiry(f, type, msg);
     });
   }
+
+  function startVerification(f, isResend) {
+    var msg = f.querySelector(".form-msg");
+    var btn = f.querySelector('button[type="submit"]');
+    var type = f.getAttribute("data-form");
+    var email = val(f, "email");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { if (msg) { msg.textContent = "Please enter a valid email to receive your code."; msg.className = "form-msg err"; } return; }
+    var sends = (f.__sends || 0);
+    if (sends >= 5) { if (msg) { msg.textContent = "Too many code requests. Please email " + EMAIL + " directly."; msg.className = "form-msg err"; } return; }
+    if (isResend && f.__lastSend && Date.now() - f.__lastSend < 45000) { if (msg) { msg.textContent = "Please wait a moment before requesting another code."; msg.className = "form-msg err"; } return; }
+    if (!window.emailjs) { loadEmailJS(); submitViaFormSubmit(f, type, msg); return; } // SDK not ready → fallback
+    var code = genCode();
+    setBtn(btn, true);
+    if (msg) { msg.textContent = "Sending your verification code…"; msg.className = "form-msg"; }
+    window.emailjs.send(CONFIG.emailjs.serviceId, CONFIG.emailjs.otpTemplate, { to_email: email, email: email, to_name: val(f, "name") || "Traveller", passcode: code, code: code })
+      .then(function () {
+        f.__otp = { code: code, email: email }; f.__sends = sends + 1; f.__lastSend = Date.now();
+        var box = f.querySelector(".otp-box"); if (box) { box.hidden = false; var i = box.querySelector(".otp-input"); if (i) { i.value = ""; i.focus(); } box.querySelector(".otp-hint").textContent = "Code sent to " + email; }
+        if (btn) btn.textContent = (type === "booking" ? "Verify & Send Enquiry" : "Verify & Send Message");
+        setBtn(btn, false);
+        if (msg) { msg.textContent = "We emailed a 6-digit code to " + email + ". Enter it above to send your enquiry."; msg.className = "form-msg ok"; }
+      })
+      .catch(function () {
+        setBtn(btn, false);
+        submitViaFormSubmit(f, type, msg); // verification unavailable → still deliver via fallback
+      });
+  }
+
+  function sendEnquiry(f, type, msg) {
+    var btn = f.querySelector('button[type="submit"]');
+    setBtn(btn, true);
+    if (msg) { msg.textContent = "Sending your enquiry…"; msg.className = "form-msg"; }
+    window.emailjs.send(CONFIG.emailjs.serviceId, CONFIG.emailjs.enquiryTemplate, enquiryParams(f, type))
+      .then(function () { showSuccess(f, type, msg); })
+      .catch(function () { submitViaFormSubmit(f, type, msg); });
+  }
+
+  function submitViaFormSubmit(f, type, msg) {
+    var btn = f.querySelector('button[type="submit"]');
+    var fd = new FormData(f);
+    fd.delete("otp");
+    fd.append("_subject", type === "booking" ? "New Booking Enquiry — " + (fd.get("package") || "Package") : type === "contact" ? "New Website Enquiry from " + (fd.get("name") || "") : "Newsletter subscription");
+    fd.append("_template", "table"); fd.append("_captcha", "false"); fd.append("Source", type + " form · travelvandana");
+    setBtn(btn, true);
+    if (msg && msg.className.indexOf("err") === -1) { msg.textContent = "Sending…"; msg.className = "form-msg"; }
+    fetch(FORM_ACTION, { method: "POST", body: fd, headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) {
+        if (d && (d.success === true || d.success === "true")) { showSuccess(f, type, msg); }
+        else { if (msg) { msg.textContent = (d && d.message) ? d.message : "We couldn't send right now. Please email " + EMAIL + " or WhatsApp us."; msg.className = "form-msg err"; } setBtn(btn, false); }
+      })
+      .catch(function () { if (msg) { msg.innerHTML = 'Network issue. <a href="mailto:' + EMAIL + '">Email us directly</a> or WhatsApp ' + PHONE + "."; msg.className = "form-msg err"; } setBtn(btn, false); });
+  }
+
   function showSuccess(f, type, msg) {
     var wrap = f.closest(".contact-form, .modal__form, .newsletter__form, .modal__dialog") || f;
     if (type === "newsletter") {
@@ -571,6 +675,7 @@
     initMarquee();
     heroSlides();
     heroParallax();
+    loadEmailJS();
     initBookingTriggers();
     initFavourites();
     initForms();

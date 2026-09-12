@@ -967,3 +967,13 @@ body.modal-open { overflow: hidden; }
   .itin-day::before { left: 25px; }
   .pkg-hero__meta { gap: 14px; }
 }
+
+/* ---------- OTP email verification field ---------- */
+.otp-box { margin: 4px 0 16px; padding: 16px; border: 1.5px dashed var(--blue); border-radius: 12px; background: var(--bg-soft); animation: fadeUp .4s var(--ease) both; }
+.otp-box label { display: block; font-family: var(--ff-head); font-weight: 600; font-size: .84rem; color: var(--navy); margin-bottom: 8px; }
+.otp-row { display: flex; gap: 8px; }
+.otp-input { flex: 1; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; font-family: var(--ff-head); font-weight: 700; letter-spacing: .4em; text-align: center; font-size: 1.1rem; color: var(--navy); }
+.otp-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px rgba(4,107,210,.1); }
+.otp-resend { flex-shrink: 0; padding: 0 16px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; font-family: var(--ff-head); font-weight: 600; font-size: .85rem; color: var(--blue); transition: .2s; }
+.otp-resend:hover { border-color: var(--blue); background: var(--bg-soft-2); }
+.otp-hint { display: block; margin-top: 8px; font-size: .78rem; color: var(--slate-500); }
