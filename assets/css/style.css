@@ -1007,3 +1007,14 @@ body.modal-open { overflow: hidden; }
 .affil__logo { height: 74px; display: grid; place-items: center; margin-bottom: 10px; width: 100%; }
 .affil__logo img { max-height: 74px; max-width: 90%; width: auto; object-fit: contain; }
 .affil .affil__sub { font-weight: 600; color: var(--slate); }
+
+/* ---------- Thank-you page ---------- */
+.thankyou { max-width: 640px; margin: 0 auto; text-align: center; }
+.thankyou__tick { width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 22px; background: #16a34a; color: #fff; display: grid; place-items: center; box-shadow: 0 16px 34px rgba(22,163,74,.4); animation: floaty 4s ease-in-out infinite; }
+.thankyou__tick svg { width: 44px; height: 44px; }
+.thankyou h1 { font-size: clamp(2rem,5vw,3rem); margin: 8px 0 16px; }
+.thankyou p { color: var(--slate); margin-bottom: 14px; }
+.thankyou__actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 24px 0 18px; }
+.thankyou__links { display: flex; gap: 26px; justify-content: center; flex-wrap: wrap; margin-top: 10px; font-family: var(--ff-head); font-weight: 600; }
+.thankyou__links a { color: var(--blue); }
+.thankyou__links a:hover { text-decoration: underline; }
