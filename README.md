@@ -82,3 +82,23 @@ GitHub Pages and can also be deployed to Vercel (static, zero config).
 ---
 
 © 2026 Vandana Travel Experts. All rights reserved.
+
+## 🔐 Admin Panel (Vercel)
+
+A secure, server-authenticated admin panel to manage packages & inquiries without editing code.
+
+- **Auth:** email + password (scrypt-hashed), HTTP-only `Secure` `SameSite=Strict` signed session cookie, validated **server-side on every `/api/admin/*` request**. Login lockout after repeated failures; logout & password change invalidate all sessions.
+- **Data:** Vercel Postgres (`admins`, `packages`, `inquiries`, `audit_log`). Images: Vercel Blob (validated, optimised).
+- **Customer site** reads **published** packages from `/api/packages` and falls back to the bundled static data if the DB is absent — it never breaks. Bookings post to `/api/inquiry`, which stores the enquiry (private) **and** emails the team; the enquiry then appears in the admin panel.
+
+### One-time setup
+1. In Vercel → **Storage**, add **Postgres** and **Blob** (both inject their env vars automatically).
+2. In Vercel → **Settings → Environment Variables**, add: `AUTH_SECRET`, `SETUP_TOKEN`, `ADMIN_INITIAL_EMAIL`, `ADMIN_INITIAL_PASSWORD` (temporary), and (optional) `AERODATABOX_KEY`. See [`.env.example`](.env.example).
+3. **Redeploy.**
+4. Initialise once — creates tables, seeds the 16 packages, creates the first admin:
+   ```bash
+   curl -X POST https://YOUR-APP.vercel.app/api/admin/setup -H "x-setup-token: YOUR_SETUP_TOKEN"
+   ```
+5. Log in at **`/admin/login.html`** with your initial credentials → you'll be forced to set a new password.
+
+**The admin panel must be used on the Vercel domain** (the secure session cookie is same-origin only). Never commit real secrets. API keys are never shown in the UI.

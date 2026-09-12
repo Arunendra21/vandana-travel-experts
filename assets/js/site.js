@@ -440,29 +440,43 @@
       return;
     }
 
-    // contact & booking → native POST to FormSubmit with its free, unlimited captcha,
-    // then redirect to thankyou.html. Blocks bots (captcha + honeypot + time-trap).
-    f.setAttribute("action", FORM_POST);
-    f.setAttribute("method", "POST");
-    f.setAttribute("target", "_top");
-    hidden(f, "_template", "table");
-    hidden(f, "_captcha", "true");
-    hidden(f, "_next", nextUrl());
-    var subj = hidden(f, "_subject", type === "booking" ? "New Booking Enquiry" : "New Website Enquiry");
-
+    // contact & booking → store securely in the DB + email the team via /api/inquiry.
+    // Honeypot + time-trap + server-side rate-limit guard against spam.
     f.addEventListener("submit", function (e) {
+      e.preventDefault();
       var msg = f.querySelector(".form-msg");
-      if (f.querySelector('[name="_honey"]').value) { e.preventDefault(); return; }
-      if (Date.now() - (f.__loadedAt || 0) < 2500) { e.preventDefault(); if (msg) { msg.textContent = "Please take a moment to complete the form."; msg.className = "form-msg err"; } f.__loadedAt = Date.now() - 2500; return; }
-      if (!validateRequired(f, msg)) { e.preventDefault(); return; }
-      if (type === "booking") subj.value = "New Booking Enquiry — " + (val(f, "package") || "Package");
-      hidden(f, "_next", nextUrl());
-      hidden(f, "Source", type + " form · travelvandana");
-      var btn = f.querySelector('button[type="submit"]');
-      if (msg) { msg.textContent = "Verifying you're human…"; msg.className = "form-msg"; }
-      setTimeout(function () { setBtn(btn, true); }, 0); // don't cancel the native submit
-      // native submission proceeds → FormSubmit captcha page → thankyou.html
+      if (f.querySelector('[name="_honey"]').value) { inquirySuccess(f); return; }
+      if (Date.now() - (f.__loadedAt || 0) < 2500) { if (msg) { msg.textContent = "Please take a moment to complete the form."; msg.className = "form-msg err"; } f.__loadedAt = Date.now() - 2500; return; }
+      if (!validateRequired(f, msg)) return;
+      var btn = f.querySelector('button[type="submit"]'); setBtn(btn, true);
+      if (msg) { msg.textContent = "Sending your enquiry…"; msg.className = "form-msg"; }
+      var payload = {
+        name: val(f, "name"), email: val(f, "email"), phone: val(f, "phone"),
+        package: val(f, "package") || (type === "booking" ? "Booking enquiry" : ""),
+        travellers: val(f, "travellers"), travel_date: val(f, "travel_date"), message: val(f, "message"),
+        source: type + " form", _honey: (f.querySelector('[name="_honey"]') || {}).value || ""
+      };
+      fetch(API_BASE + "/api/inquiry", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload) })
+        .then(function (r) { return r.json().catch(function () { return {}; }); })
+        .then(function (j) { if (j && j.ok) inquirySuccess(f); else fallbackFormSubmit(f, type, msg, btn); })
+        .catch(function () { fallbackFormSubmit(f, type, msg, btn); });
     });
+  }
+  function inquirySuccess(f) {
+    var host = f.parentNode;
+    var s = document.createElement("div"); s.className = "form-success";
+    s.innerHTML = '<div class="form-success__tick">' + I.check + "</div><h3>Thank you!</h3><p>Your enquiry has reached the Vandana Travel Experts team. We'll get back to you within 24 hours.</p>" +
+      '<div class="form-success__cta"><a class="btn btn--outline btn--sm" href="https://wa.me/' + WA + '">Message us on WhatsApp</a></div>';
+    f.style.display = "none"; host.appendChild(s);
+  }
+  function fallbackFormSubmit(f, type, msg, btn) {
+    var fd = new FormData(f); fd.delete("_honey");
+    fd.append("_subject", type === "booking" ? "New Booking Enquiry — " + (val(f, "package") || "Package") : "New Website Enquiry from " + (val(f, "name") || ""));
+    fd.append("_template", "table"); fd.append("_captcha", "false");
+    fetch(FORM_AJAX, { method: "POST", body: fd, headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (j) { if (j && (j.success === true || j.success === "true")) inquirySuccess(f); else { if (msg) { msg.innerHTML = 'We couldn\'t send right now. Please email <a href="mailto:' + EMAIL + '">' + EMAIL + "</a> or WhatsApp us."; msg.className = "form-msg err"; } setBtn(btn, false); } })
+      .catch(function () { if (msg) { msg.innerHTML = 'Network issue. <a href="mailto:' + EMAIL + '">Email us</a> or WhatsApp ' + PHONE + "."; msg.className = "form-msg err"; } setBtn(btn, false); });
   }
   function initForms() { document.querySelectorAll("form[data-form]").forEach(initForm); }
 
@@ -753,24 +767,38 @@
     });
   }
 
+  /* Load PUBLISHED packages from the DB (admin-managed); fall back to the bundled
+     static data if the API is unavailable — the site never breaks. */
+  function loadPackages(done) {
+    var finished = false;
+    var to = setTimeout(function () { if (!finished) { finished = true; done(); } }, 2500);
+    fetch(API_BASE + "/api/packages").then(function (r) { return r.json(); }).then(function (j) {
+      if (finished) return; finished = true; clearTimeout(to);
+      if (j && j.ok && j.configured && j.packages && j.packages.length) { PKGS = j.packages; window.VTE_PACKAGES = j.packages; }
+      done();
+    }).catch(function () { if (finished) return; finished = true; clearTimeout(to); done(); });
+  }
+
   /* ================= INIT ================= */
   initPreloader(); // run ASAP (script is at end of body)
   document.addEventListener("DOMContentLoaded", function () {
-    renderHeader();
-    renderFooter();
-    renderHome();
-    renderPackagesPage();
-    renderPackageDetail();
-    renderAbout();
-    renderTestimonials();
-    initMarquee();
-    heroSlides();
-    heroParallax();
-    initBookingTriggers();
-    initFavourites();
-    initForms();
-    renderFlightsPage();
-    renderVisaPage();
-    initObservers();
+    loadPackages(function () {
+      renderHeader();
+      renderFooter();
+      renderHome();
+      renderPackagesPage();
+      renderPackageDetail();
+      renderAbout();
+      renderTestimonials();
+      initMarquee();
+      heroSlides();
+      heroParallax();
+      initBookingTriggers();
+      initFavourites();
+      initForms();
+      renderFlightsPage();
+      renderVisaPage();
+      initObservers();
+    });
   });
 })();
