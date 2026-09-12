@@ -5,6 +5,8 @@
 (function () {
   "use strict";
 
+  var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   /* ---------- Small SVG icon set (inline, no external deps) ---------- */
   var I = {
     caret: '<svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
@@ -382,13 +384,58 @@
     });
   }
 
+  /* ---------- Branded intro (once per session, subtle) ---------- */
+  function brandIntro() {
+    if (REDUCED) return;
+    try { if (sessionStorage.getItem("vte_seen")) return; sessionStorage.setItem("vte_seen", "1"); } catch (e) {}
+    var o = document.createElement("div");
+    o.className = "vte-intro";
+    o.innerHTML = '<img src="assets/img/logo.png" alt="Vandana Travel Experts"><div class="bar"></div>';
+    document.body.appendChild(o);
+    var html = document.documentElement; html.style.overflow = "hidden";
+    setTimeout(function () { o.classList.add("hide"); html.style.overflow = ""; }, 1250);
+    o.addEventListener("transitionend", function () { if (o.parentNode) o.parentNode.removeChild(o); });
+  }
+
+  /* ---------- Gentle hero background parallax ---------- */
+  function heroParallax() {
+    var slides = document.querySelector(".hero__slides");
+    var hero = document.querySelector(".hero");
+    if (!slides || !hero || REDUCED) return;
+    var ticking = false;
+    function update() {
+      var y = window.scrollY;
+      if (y < hero.offsetHeight) slides.style.transform = "translate3d(0," + (y * 0.28).toFixed(1) + "px,0)";
+      ticking = false;
+    }
+    window.addEventListener("scroll", function () {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    // scroll cue
+    var cue = document.createElement("div"); cue.className = "hero__cue"; cue.setAttribute("aria-hidden", "true");
+    hero.appendChild(cue);
+  }
+
+  /* ---------- Save/favourite micro-interaction (visual only) ---------- */
+  function initFavourites() {
+    document.addEventListener("click", function (e) {
+      var f = e.target.closest && e.target.closest(".pkg-card__fav");
+      if (!f) return;
+      e.preventDefault();
+      f.classList.toggle("is-fav");
+    });
+  }
+
   /* ---------- Init ---------- */
   document.addEventListener("DOMContentLoaded", function () {
+    brandIntro();
     renderHeader();
     renderFooter();
     renderHome();
     renderTestimonials();
     heroSlides();
+    heroParallax();
+    initFavourites();
     initForms();
     initObservers();
   });
