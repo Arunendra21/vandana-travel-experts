@@ -977,3 +977,27 @@ body.modal-open { overflow: hidden; }
 .otp-resend { flex-shrink: 0; padding: 0 16px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; font-family: var(--ff-head); font-weight: 600; font-size: .85rem; color: var(--blue); transition: .2s; }
 .otp-resend:hover { border-color: var(--blue); background: var(--bg-soft-2); }
 .otp-hint { display: block; margin-top: 8px; font-size: .78rem; color: var(--slate-500); }
+
+/* ---------- About: justified prose ---------- */
+.prose--justify p { text-align: justify; text-justify: inter-word; }
+@media (max-width: 560px) { .prose--justify p { text-align: left; } }
+
+/* ---------- About: affiliation seal badges ---------- */
+.affil-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 18px; }
+.affil { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 12px; text-align: center; transition: .35s var(--ease); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.affil:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
+.affil__seal { width: 84px; height: 84px; margin-bottom: 8px; }
+.affil__seal svg { width: 100%; height: 100%; display: block; }
+.affil__name { font-family: var(--ff-head); font-weight: 800; color: var(--navy); font-size: 1rem; }
+.affil__sub { font-size: .72rem; color: var(--slate-500); }
+
+/* ---------- About: why choose us ---------- */
+.why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.why-item { display: flex; gap: 14px; align-items: flex-start; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; transition: .35s var(--ease); }
+.why-item:hover { transform: translateY(-6px); box-shadow: var(--shadow); border-color: transparent; }
+.why-item__ic { flex-shrink: 0; width: 40px; height: 40px; border-radius: 11px; background: var(--bg-soft-2); color: var(--blue); display: grid; place-items: center; }
+.why-item__ic svg { width: 22px; height: 22px; }
+.why-item b { font-family: var(--ff-head); color: var(--navy); font-size: 1rem; display: block; margin-bottom: 4px; }
+.why-item p { font-size: .88rem; color: var(--slate-500); }
+@media (max-width: 900px) { .why-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .why-grid { grid-template-columns: 1fr; } }

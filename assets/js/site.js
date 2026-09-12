@@ -89,7 +89,7 @@
       return '<div class="dropdown__group"><div class="dropdown__title">' + I.globe + title +
         ' <a class="dropdown__all" href="packages.html?cat=' + cat + '">View all</a></div>' + links + "</div>";
     }
-    return '<div class="dropdown dropdown--mega dropdown--pkgs">' + col("International Tours", intl, "International") + col("National Tours", nat, "National") + "</div>";
+    return '<div class="dropdown dropdown--mega dropdown--pkgs">' + col("International Packages", intl, "International") + col("Domestic Packages", nat, "National") + "</div>";
   }
 
   function renderHeader() {
@@ -546,6 +546,57 @@
   }
   function initForms() { document.querySelectorAll("form[data-form]").forEach(initForm); }
 
+  /* ================= ABOUT PAGE (affiliations + why-us) ================= */
+  // Original credential-seal badge artwork (not third-party trademark logos).
+  function affilSeal(a) {
+    var ac = a.ac, size = ac.length >= 5 ? 18 : 23;
+    return '<div class="affil reveal">' +
+      '<div class="affil__seal" style="--c:' + a.c + '">' +
+        '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+          '<circle cx="50" cy="50" r="47" fill="#fff" stroke="var(--c)" stroke-width="2.5"/>' +
+          '<circle cx="50" cy="50" r="40" fill="none" stroke="var(--c)" stroke-width="1" stroke-dasharray="1.5 3" opacity=".55"/>' +
+          '<path d="M50 9 l2.5 5.1 5.6.8-4 4 .9 5.6-5-2.6-5 2.6 .9-5.6-4-4 5.6-.8z" fill="var(--c)"/>' +
+          '<path d="M27 74 q23 12 46 0" fill="none" stroke="var(--c)" stroke-width="1" opacity=".5"/>' +
+          '<text x="50" y="57" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="' + size + '" fill="var(--c)">' + ac + '</text>' +
+        "</svg>" +
+      "</div>" +
+      '<div class="affil__name">' + a.name + "</div>" +
+      '<div class="affil__sub">' + a.sub + "</div>" +
+    "</div>";
+  }
+  function renderAbout() {
+    var ag = document.getElementById("affil-grid");
+    if (ag) {
+      var affils = [
+        { ac: "IATA", name: "IATA", sub: "TIDS 96097120", c: "#046bd2" },
+        { ac: "TAAI", name: "TAAI", sub: "Member", c: "#0ea5e9" },
+        { ac: "TAFI", name: "TAFI", sub: "Member", c: "#16a34a" },
+        { ac: "ADTOI", name: "ADTOI", sub: "Member", c: "#e6a93b" },
+        { ac: "NIDHI", name: "NIDHI", sub: "Registered", c: "#7c3aed" },
+        { ac: "IATO", name: "IATO", sub: "Member", c: "#dc2626" },
+        { ac: "MoT", name: "Ministry of Tourism", sub: "Govt. of India · 2110240HE706", c: "#0f766e" }
+      ];
+      ag.innerHTML = affils.map(affilSeal).join("");
+    }
+    var wg = document.getElementById("why-grid");
+    if (wg) {
+      var why = [
+        ["25 Years' Experience", "Deep expertise across the travel and aviation industry."],
+        ["24×7 Customer Service", "Reliable support whenever you need it — before, during and after your trip."],
+        ["Tours of Every Duration", "From a 1-night getaway to a 30-night grand tour."],
+        ["Every Lifestyle & Budget", "Luxury, upgraded and cost-saver tours to suit you."],
+        ["For Every Traveller", "Individuals, families, corporates, groups and MICE clients."],
+        ["Every Age Group", "Thoughtfully planned tours for ages 7 to 70."],
+        ["Special Group Tours", "Students, senior citizens, honeymooners, corporates and more."],
+        ["New Destination Ideas", "Innovative suggestions to inspire your next journey."],
+        ["10,000+ Families Served", "A one-stop solution trusted for successful vacations."]
+      ];
+      wg.innerHTML = why.map(function (w, i) {
+        return '<div class="why-item reveal" data-delay="' + ((i % 3) + 1) + '"><span class="why-item__ic">' + I.check + "</span><div><b>" + w[0] + "</b><p>" + w[1] + "</p></div></div>";
+      }).join("");
+    }
+  }
+
   /* ================= TESTIMONIALS ================= */
   var TESTI = [
     { name: "Shalini Gupta", role: "Corporate Travel Experience", img: "avatar-5.webp", text: "We organized our company conference through Vandana Travel Experts, and everything was perfectly managed — from flights and hotel bookings to event coordination. Their professionalism and attention to detail were outstanding." },
@@ -671,6 +722,7 @@
     renderHome();
     renderPackagesPage();
     renderPackageDetail();
+    renderAbout();
     renderTestimonials();
     initMarquee();
     heroSlides();

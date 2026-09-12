@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://arunendra21.github.io/vandana-travel-experts/sitemap.xml
