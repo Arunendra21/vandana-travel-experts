@@ -80,6 +80,11 @@
           '<li class="nav__item"><a class="nav__link' + act("home") + '" href="index.html">Home</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("about") + '" href="about.html">About Us</a></li>' +
           '<li class="nav__item has-mega"><a class="nav__link' + act("packages") + '" href="packages.html">Packages ' + I.caret + '</a>' + buildPackagesMega() + "</li>" +
+          '<li class="nav__item has-mega"><a class="nav__link' + (act("flights") || act("visa")) + '" href="flights.html">Travel Info ' + I.caret + '</a>' +
+            '<div class="dropdown dropdown--tools">' +
+              '<a class="dropdown__link" href="flights.html">' + I.plane + ' Live Flight Status</a>' +
+              '<a class="dropdown__link" href="visa.html">' + I.doc + ' Visa Requirements</a>' +
+            "</div></li>" +
           '<li class="nav__item"><a class="nav__link" href="index.html#corporate">Corporate Travel</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("contact") + '" href="contact.html">Contact Us</a></li>' +
           '<li class="nav__cta"><a class="btn btn--primary btn--sm" href="contact.html">Get a Quote ' + I.arrow + "</a></li>" +
@@ -356,11 +361,16 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeBooking(); });
     initForm(m.querySelector("form"));
   }
-  function openBooking(pkgTitle) {
+  function openBooking(pkgTitle, message) {
     buildBookingModal();
     var m = document.getElementById("book-modal");
     var sel = m.querySelector("#b-pkg");
-    if (pkgTitle && sel) { for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === pkgTitle) { sel.selectedIndex = i; break; } } }
+    if (pkgTitle && sel) {
+      var found = false;
+      for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === pkgTitle) { sel.selectedIndex = i; found = true; break; } }
+      if (!found) { var o = document.createElement("option"); o.value = pkgTitle; o.textContent = pkgTitle; sel.insertBefore(o, sel.firstChild); sel.selectedIndex = 0; }
+    }
+    if (message) { var t = m.querySelector("#b-msg"); if (t && !t.value) t.value = message; }
     m.classList.add("open"); m.setAttribute("aria-hidden", "false"); document.body.classList.add("modal-open");
     var f = m.querySelector("input,select,textarea"); if (f) setTimeout(function () { f.focus(); }, 60);
   }
@@ -373,7 +383,7 @@
       var b = e.target.closest && e.target.closest("[data-book]");
       if (!b) return;
       e.preventDefault();
-      openBooking(b.getAttribute("data-book"));
+      openBooking(b.getAttribute("data-book"), b.getAttribute("data-book-msg") || "");
     });
   }
 
@@ -626,6 +636,104 @@
     setTimeout(hide, 2200); // safety cap — never hang
   }
 
+  /* ================= LIVE TRAVEL INFO (flights + visa) ================= */
+  // Same-origin on Vercel; cross-origin to the Vercel API from other hosts (CORS-enabled).
+  var API_BASE = /(^|\.)vercel\.app$/.test(location.hostname) ? "" : "https://vandana-travel-experts.vercel.app";
+  var INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>';
+  var flightService = { get: function (code) { return fetch(API_BASE + "/api/flight?flight=" + encodeURIComponent(code)).then(function (r) { return r.json(); }); } };
+  var visaService = {
+    list: function () { return fetch(API_BASE + "/api/visa?list=1").then(function (r) { return r.json(); }); },
+    get: function (from, to) { return fetch(API_BASE + "/api/visa?from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to)).then(function (r) { return r.json(); }); }
+  };
+  function fmtTime(iso) { if (!iso) return "—"; var d = new Date(iso); return isNaN(d) ? "—" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+  function fmtDate(iso) { if (!iso) return ""; var d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString([], { day: "2-digit", month: "short" }); }
+  function timeAgo(iso) { var d = new Date(iso); if (isNaN(d)) return "just now"; var s = Math.max(0, Math.round((Date.now() - d.getTime()) / 1000)); if (s < 60) return "just now"; var m = Math.round(s / 60); if (m < 60) return m + " min ago"; return Math.round(m / 60) + " hr ago"; }
+
+  function renderFlightsPage() {
+    var form = document.getElementById("flight-form"); if (!form) return;
+    var out = document.getElementById("flight-result");
+    var input = document.getElementById("flight-input");
+    function loading(code) { out.innerHTML = '<div class="tool-loading"><span class="tool-spin"></span> Searching for flight <b>' + esc(code) + "</b>…</div>"; }
+    function msg(text, err) { out.innerHTML = '<div class="tool-msg' + (err ? " tool-msg--err" : "") + '">' + esc(text) + "</div>"; }
+    function badge(s) {
+      var map = { scheduled: ["Scheduled", "st-sched"], active: ["In Air", "st-active"], landed: ["Landed", "st-landed"], cancelled: ["Cancelled", "st-cancel"], incident: ["Diverted", "st-delay"], diverted: ["Diverted", "st-delay"] };
+      var m = map[s] || [s ? s.charAt(0).toUpperCase() + s.slice(1) : "Unknown", "st-sched"];
+      return '<span class="fl-badge ' + m[1] + '">' + m[0] + "</span>";
+    }
+    function leg(label, l) {
+      function row(k, v) { return v && v !== "—" ? '<div class="fl-row"><span>' + k + "</span><b>" + esc(v) + "</b></div>" : ""; }
+      return '<div class="fl-leg"><h4>' + label + "</h4>" +
+        row("Scheduled", fmtTime(l.scheduled) + (fmtDate(l.scheduled) ? " · " + fmtDate(l.scheduled) : "")) +
+        (l.estimated ? row("Estimated", fmtTime(l.estimated)) : "") +
+        (l.actual ? row("Actual", fmtTime(l.actual)) : "") +
+        row("Terminal", l.terminal) + row("Gate", l.gate) + "</div>";
+    }
+    function render(d, code) {
+      if (!d || !d.ok) { msg((d && d.message) || "No live flight information is currently available. Please try again.", true); return; }
+      var f = d.flight;
+      if (!f) { msg(d.message || "No live information found for this flight.", false); return; }
+      var dep = f.departure, arr = f.arrival, delay = Math.max(dep.delay || 0, arr.delay || 0);
+      out.innerHTML =
+        '<div class="fl-card reveal in">' +
+          (d.demo ? '<div class="fl-demo">' + INFO + " Sample data shown. Add your free AviationStack key in Vercel to show live status.</div>" : "") +
+          '<div class="fl-top"><div><div class="fl-no">' + esc(f.number || code) + '</div><div class="fl-al">' + esc(f.airline || "—") + "</div></div>" + badge(f.status) + "</div>" +
+          '<div class="fl-route"><div class="fl-port"><b>' + esc(dep.iata || "—") + "</b><span>" + esc(dep.airport || "") + '</span></div><div class="fl-line">' + I.plane + '</div><div class="fl-port fl-port--r"><b>' + esc(arr.iata || "—") + "</b><span>" + esc(arr.airport || "") + "</span></div></div>" +
+          '<div class="fl-grid">' + leg("Departure", dep) + leg("Arrival", arr) + "</div>" +
+          (delay > 0 ? '<div class="fl-delay">' + INFO + " Delayed by approximately " + delay + " min</div>" : "") +
+          '<div class="fl-foot"><span>Updated ' + timeAgo(d.updated) + " · Source: " + esc(d.source || "—") + '</span><div class="fl-actions"><button class="btn btn--outline btn--sm" data-refresh="' + esc(code) + '">↻ Refresh</button><button class="btn btn--primary btn--sm" data-book="Flight Booking Assistance">Enquire</button></div></div>' +
+        "</div>";
+    }
+    function search(code) {
+      code = String(code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (code.length < 3) { msg("Please enter a valid flight number, e.g. AI302.", true); return; }
+      loading(code);
+      flightService.get(code).then(function (d) { render(d, code); }).catch(function () { msg("No live flight information is currently available. Please try again.", true); });
+    }
+    form.addEventListener("submit", function (e) { e.preventDefault(); search(input.value); });
+    out.addEventListener("click", function (e) { var r = e.target.closest && e.target.closest("[data-refresh]"); if (r) search(r.getAttribute("data-refresh")); });
+    var q = qs("flight"); if (q) { input.value = q; search(q); }
+  }
+
+  function renderVisaPage() {
+    var form = document.getElementById("visa-form"); if (!form) return;
+    var out = document.getElementById("visa-result");
+    var toSel = document.getElementById("visa-to"), fromSel = document.getElementById("visa-from");
+    visaService.list().then(function (d) {
+      if (d && d.ok) { toSel.innerHTML = '<option value="">Select destination…</option>' + d.destinations.map(function (x) { return '<option value="' + x.id + '">' + x.flag + " " + esc(x.country) + "</option>"; }).join(""); }
+      else toSel.innerHTML = '<option value="">Unavailable — try later</option>';
+    }).catch(function () { toSel.innerHTML = '<option value="">Unavailable — try later</option>'; });
+    function badge(s, label) {
+      var cls = { visa_required: "vb-req", visa_free: "vb-free", visa_on_arrival: "vb-arr", e_visa: "vb-evisa", eta: "vb-evisa", permit: "vb-permit" }[s] || "vb-req";
+      return '<span class="visa-badge ' + cls + '">' + esc(label || "Check") + "</span>";
+    }
+    function fact(k, v) { return v ? '<div class="visa-fact"><span>' + k + "</span><b>" + esc(v) + "</b></div>" : ""; }
+    function render(d) {
+      if (!d || !d.ok) { out.innerHTML = '<div class="tool-msg tool-msg--err">' + esc((d && d.message) || "Unable to fetch requirements.") + "</div>"; return; }
+      if (d.supported === false) {
+        out.innerHTML = '<div class="visa-card reveal in"><div class="visa-head"><div class="visa-flag">' + (d.flag || "🌍") + "</div><div><h3>" + esc(d.country || "") + '</h3></div></div><div class="visa-note">' + INFO + " " + esc(d.message) + '</div><div class="visa-source">Official source: <a href="' + esc(d.officialUrl) + '" target="_blank" rel="noopener">' + esc(d.officialName || "Official portal") + "</a></div></div>";
+        return;
+      }
+      var docs = (d.documents || []).map(function (x) { return "<li>" + I.check + "<span>" + esc(x) + "</span></li>"; }).join("");
+      var bookMsg = "Visa enquiry\nNationality: Indian passport\nDestination: " + d.country + "\nVisa type: " + (d.visaType || "—");
+      out.innerHTML =
+        '<div class="visa-card reveal in">' +
+          '<div class="visa-head"><div class="visa-flag">' + (d.flag || "🌍") + '</div><div class="visa-head__t"><h3>' + esc(d.country) + '</h3><div class="visa-sub">Indian Passport · ' + esc(d.region || "") + "</div></div>" + badge(d.status, d.statusLabel) + "</div>" +
+          '<div class="visa-facts">' + fact("Visa Type", d.visaType) + fact("Allowed Stay", d.stay) + fact("Entry", d.entry) + fact("Visa Fee", d.fee || d.feeNote) + fact("Processing", d.processing || "Verify with the authority") + "</div>" +
+          (d.note ? '<div class="visa-note">' + INFO + " " + esc(d.note) + "</div>" : "") +
+          '<h4 class="visa-h4">Required Documents</h4><ul class="visa-docs">' + docs + "</ul>" +
+          '<div class="visa-source">Official source: <a href="' + esc(d.officialUrl) + '" target="_blank" rel="noopener">' + esc(d.officialName) + "</a> · Last checked: " + esc(d.checked) + "</div>" +
+          '<div class="visa-disc">' + INFO + " " + esc(d.disclaimer) + "</div>" +
+          '<div class="visa-cta"><button class="btn btn--primary" data-book="Visa Assistance — ' + esc(d.country) + '" data-book-msg="' + esc(bookMsg) + '">Get Visa Assistance</button><a class="btn btn--outline" href="' + esc(d.officialUrl) + '" target="_blank" rel="noopener">Official Portal ↗</a></div>' +
+        "</div>";
+    }
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var to = toSel.value; if (!to) { out.innerHTML = '<div class="tool-msg tool-msg--err">Please choose a destination.</div>'; return; }
+      out.innerHTML = '<div class="tool-loading"><span class="tool-spin"></span> Checking current visa information…</div>';
+      visaService.get(fromSel.value || "IN", to).then(render).catch(function () { out.innerHTML = '<div class="tool-msg tool-msg--err">Visa information is currently unavailable. Please try again, or contact us for assistance.</div>'; });
+    });
+  }
+
   /* ================= INIT ================= */
   initPreloader(); // run ASAP (script is at end of body)
   document.addEventListener("DOMContentLoaded", function () {
@@ -642,6 +750,8 @@
     initBookingTriggers();
     initFavourites();
     initForms();
+    renderFlightsPage();
+    renderVisaPage();
     initObservers();
   });
 })();
