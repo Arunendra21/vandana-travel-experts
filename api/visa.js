@@ -152,7 +152,7 @@ module.exports = async function (req, res) {
   try {
     var url = new URL(req.url, "http://x");
     if (url.searchParams.get("list")) {
-      var dests = Object.keys(DEST).map(function (k) { return { id: k, country: DEST[k].country, flag: DEST[k].flag, region: DEST[k].region }; })
+      var dests = Object.keys(DEST).map(function (k) { return { id: k, country: DEST[k].country, flag: DEST[k].flag, region: DEST[k].region, status: DEST[k].status, statusLabel: LABEL[DEST[k].status] || "Check" }; })
         .sort(function (a, b) { return a.country.localeCompare(b.country); });
       return send(res, 200, {
         ok: true,

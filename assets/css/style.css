@@ -1117,3 +1117,27 @@ body.modal-open { overflow: hidden; }
   .tool-search--visa .btn { width: 100%; }
   .visa-cta .btn { flex: 1; }
 }
+
+/* ---------- Visa landing: popular destinations + know-your-visa ---------- */
+.visa-dest-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+.visa-dest { position: relative; display: block; padding: 0; border: none; border-radius: var(--radius); overflow: hidden; aspect-ratio: 4 / 3.4; cursor: pointer; box-shadow: var(--shadow-sm); isolation: isolate; }
+.visa-dest img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s var(--ease); }
+.visa-dest:hover img { transform: scale(1.1); }
+.visa-dest__grad { position: absolute; inset: 0; background: linear-gradient(to top, rgba(4,20,40,.85) 8%, rgba(4,20,40,.05) 55%, transparent); }
+.visa-dest__body { position: absolute; inset: auto 0 0 0; padding: 14px; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; color: #fff; text-align: left; }
+.visa-dest__name { font-family: var(--ff-head); font-weight: 700; font-size: 1.05rem; }
+.visa-badge--sm { font-size: .66rem; padding: 4px 9px; }
+.visa-dest:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); transition: transform .35s var(--ease), box-shadow .35s var(--ease); }
+
+.visa-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.visa-type { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; transition: .35s var(--ease); display: flex; flex-direction: column; align-items: flex-start; }
+.visa-type:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); border-color: transparent; }
+.visa-type__icon { width: 56px; height: 56px; border-radius: 14px; background: var(--bg-soft-2); color: var(--blue); display: grid; place-items: center; margin-bottom: 16px; transition: .35s; }
+.visa-type:hover .visa-type__icon { background: var(--grad-blue); color: #fff; transform: rotate(-6deg) scale(1.06); }
+.visa-type__icon svg { width: 28px; height: 28px; }
+.visa-type h3 { font-size: 1.2rem; margin-bottom: 8px; }
+.visa-type p { color: var(--slate-500); font-size: .92rem; flex: 1; margin-bottom: 18px; }
+
+@media (max-width: 1080px) { .visa-dest-grid { grid-template-columns: repeat(4, 1fr); } .visa-types { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px) { .visa-dest-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 520px) { .visa-dest-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .visa-types { grid-template-columns: 1fr; } }

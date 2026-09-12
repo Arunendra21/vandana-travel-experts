@@ -36,9 +36,9 @@
   <section class="tool-hero tool-hero--visa">
     <div class="container">
       <div class="tool-hero__inner reveal in">
-        <span class="eyebrow">Live Travel Info</span>
-        <h1>Check <span class="grad">Visa Requirements</span></h1>
-        <p>Know before you go — visa type, allowed stay, documents and official sources by destination.</p>
+        <span class="eyebrow">Visa &amp; Entry Requirements</span>
+        <h1>Get Your <span class="grad">Visa</span> the Easy Way</h1>
+        <p>Know before you go — visa type, allowed stay, documents and official sources by destination, plus expert visa assistance from our team.</p>
         <form class="tool-search tool-search--visa" id="visa-form">
           <div class="tool-select">
             <label>What passport do you hold?</label>
@@ -54,9 +54,81 @@
     </div>
   </section>
 
-  <section class="section" style="padding-top:40px">
+  <!-- Popular Visa Destinations -->
+  <section class="section" style="padding-top:56px">
+    <div class="container">
+      <div class="section-head reveal" style="margin-bottom:34px">
+        <span class="eyebrow">Where to?</span>
+        <h2 class="section-title">Popular Visa <span class="accent">Destinations</span></h2>
+        <p class="section-sub">Tap a destination to see its current visa status, documents and official source.</p>
+      </div>
+      <div class="visa-dest-grid" id="visa-dests"></div>
+    </div>
+  </section>
+
+  <!-- Live checker results -->
+  <section class="section--tight" id="visa-result-section">
     <div class="container">
       <div id="visa-result" class="tool-result"></div>
+    </div>
+  </section>
+
+  <!-- Know Your Visa -->
+  <section class="section section--soft">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Visa basics</span>
+        <h2 class="section-title">Know Your <span class="accent">Visa</span></h2>
+        <p class="section-sub">A quick guide to the most common visa categories. Our experts help you choose and apply for the right one.</p>
+      </div>
+      <div class="visa-types">
+        <div class="visa-type reveal">
+          <div class="visa-type__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/><circle cx="12" cy="10" r="2"/><path d="M8 16c1-2 7-2 8 0"/></svg></div>
+          <h3>Tourist Visa</h3>
+          <p>For leisure travel, sightseeing and visiting family or friends. A short-stay visa that does not permit work or study in the destination country.</p>
+          <button class="btn btn--outline btn--sm" data-book="Visa Assistance — Tourist Visa" data-book-msg="Visa enquiry&#10;Type: Tourist visa">Enquire</button>
+        </div>
+        <div class="visa-type reveal" data-delay="1">
+          <div class="visa-type__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+          <h3>Business Visa</h3>
+          <p>For meetings, conferences, negotiations and short business trips. It allows business activity but not local employment or salaried work.</p>
+          <button class="btn btn--outline btn--sm" data-book="Visa Assistance — Business Visa" data-book-msg="Visa enquiry&#10;Type: Business visa">Enquire</button>
+        </div>
+        <div class="visa-type reveal" data-delay="2">
+          <div class="visa-type__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5z"/><path d="M6 9.5V15c0 1.5 3 3 6 3s6-1.5 6-3V9.5"/></svg></div>
+          <h3>Employment Visa</h3>
+          <p>For taking up a job or long-term work abroad. Usually requires employer sponsorship, a work contract and supporting documentation.</p>
+          <button class="btn btn--outline btn--sm" data-book="Visa Assistance — Employment Visa" data-book-msg="Visa enquiry&#10;Type: Employment visa">Enquire</button>
+        </div>
+        <div class="visa-type reveal" data-delay="3">
+          <div class="visa-type__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5M22 10v6"/></svg></div>
+          <h3>Student Visa</h3>
+          <p>For enrolling in a recognised college, university or programme abroad. Typically needs an admission letter and proof of funds.</p>
+          <button class="btn btn--outline btn--sm" data-book="Visa Assistance — Student Visa" data-book-msg="Visa enquiry&#10;Type: Student visa">Enquire</button>
+        </div>
+        <div class="visa-type reveal" data-delay="4">
+          <div class="visa-type__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a1 1 0 0 0-.9 1.7l4.6 3.6-1.7 2.9-2.5-.3a1 1 0 0 0-.9 1.6l2 2 2 2a1 1 0 0 0 1.6-.9l-.3-2.5 2.9-1.7 3.6 4.6a1 1 0 0 0 1.7-.9z"/></svg></div>
+          <h3>Transit Visa</h3>
+          <p>For passing through a country on the way to your final destination. Rules depend on your layover length, airport and nationality.</p>
+          <button class="btn btn--outline btn--sm" data-book="Visa Assistance — Transit Visa" data-book-msg="Visa enquiry&#10;Type: Transit visa">Enquire</button>
+        </div>
+        <div class="visa-type reveal" data-delay="5">
+          <div class="visa-type__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-4 12.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.3A7 7 0 0 0 12 2z"/><path d="M9 21h6"/></svg></div>
+          <h3>Not Sure Which One?</h3>
+          <p>Tell us your destination and purpose of travel — our visa experts will guide you to the right visa and handle the paperwork for you.</p>
+          <button class="btn btn--primary btn--sm" data-book="Visa Assistance">Get Visa Help</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="container">
+      <div class="cta-banner reveal">
+        <h2>Let Us Handle Your Visa</h2>
+        <p>From choosing the right visa to documentation, appointments and submission — our team makes it hassle-free.</p>
+        <a class="btn btn--gold" data-book="Visa Assistance" href="#">Get Visa Assistance</a>
+      </div>
     </div>
   </section>
 

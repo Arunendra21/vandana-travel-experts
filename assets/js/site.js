@@ -694,18 +694,37 @@
     var q = qs("flight"); if (q) { input.value = q; search(q); }
   }
 
+  var VISA_IMG = {
+    france: "dest-france.jpg", italy: "dest-europe.png", switzerland: "dest-switzerland.jpg",
+    uae: "dest-dubai.png", singapore: "dest-singapore.jpg", thailand: "dest-thailand.png",
+    srilanka: "dest-srilanka.jpg", nepal: "dest-nepal.jpg", bhutan: "dest-bhutan.png",
+    japan: "dest-japan.png", usa: "dest-america.png", australia: "dest-australia.png", mauritius: "pkg-mauritius.jpg"
+  };
+  function visaBadgeCls(s) { return { visa_required: "vb-req", visa_free: "vb-free", visa_on_arrival: "vb-arr", e_visa: "vb-evisa", eta: "vb-evisa", permit: "vb-permit" }[s] || "vb-req"; }
+
   function renderVisaPage() {
     var form = document.getElementById("visa-form"); if (!form) return;
     var out = document.getElementById("visa-result");
     var toSel = document.getElementById("visa-to"), fromSel = document.getElementById("visa-from");
+    var grid = document.getElementById("visa-dests");
+    function runFor(id) { if (!id) return; toSel.value = id; form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable: true })); var sec = document.getElementById("visa-result-section"); if (sec) setTimeout(function () { sec.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80); }
     visaService.list().then(function (d) {
-      if (d && d.ok) { toSel.innerHTML = '<option value="">Select destination…</option>' + d.destinations.map(function (x) { return '<option value="' + x.id + '">' + x.flag + " " + esc(x.country) + "</option>"; }).join(""); }
-      else toSel.innerHTML = '<option value="">Unavailable — try later</option>';
+      if (d && d.ok) {
+        toSel.innerHTML = '<option value="">Select destination…</option>' + d.destinations.map(function (x) { return '<option value="' + x.id + '">' + x.flag + " " + esc(x.country) + "</option>"; }).join("");
+        if (grid) {
+          var feat = d.destinations.filter(function (x) { return VISA_IMG[x.id]; });
+          grid.innerHTML = feat.map(function (x) {
+            return '<button class="visa-dest reveal" data-visa="' + x.id + '" type="button">' +
+              '<img src="assets/img/' + VISA_IMG[x.id] + '" alt="' + esc(x.country) + '" loading="lazy">' +
+              '<span class="visa-dest__grad"></span>' +
+              '<span class="visa-dest__body"><span class="visa-dest__name">' + esc(x.country) + '</span><span class="visa-badge visa-badge--sm ' + visaBadgeCls(x.status) + '">' + esc(x.statusLabel) + "</span></span></button>";
+          }).join("");
+          revealAll();
+        }
+      } else { toSel.innerHTML = '<option value="">Unavailable — try later</option>'; if (grid) grid.innerHTML = ""; }
     }).catch(function () { toSel.innerHTML = '<option value="">Unavailable — try later</option>'; });
-    function badge(s, label) {
-      var cls = { visa_required: "vb-req", visa_free: "vb-free", visa_on_arrival: "vb-arr", e_visa: "vb-evisa", eta: "vb-evisa", permit: "vb-permit" }[s] || "vb-req";
-      return '<span class="visa-badge ' + cls + '">' + esc(label || "Check") + "</span>";
-    }
+    if (grid) grid.addEventListener("click", function (e) { var b = e.target.closest("[data-visa]"); if (b) runFor(b.getAttribute("data-visa")); });
+    function badge(s, label) { return '<span class="visa-badge ' + visaBadgeCls(s) + '">' + esc(label || "Check") + "</span>"; }
     function fact(k, v) { return v ? '<div class="visa-fact"><span>' + k + "</span><b>" + esc(v) + "</b></div>" : ""; }
     function render(d) {
       if (!d || !d.ok) { out.innerHTML = '<div class="tool-msg tool-msg--err">' + esc((d && d.message) || "Unable to fetch requirements.") + "</div>"; return; }
