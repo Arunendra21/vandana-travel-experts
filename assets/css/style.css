@@ -215,6 +215,7 @@ a:focus-visible, button:focus-visible, .btn:focus-visible { outline-offset: 3px;
 .dropdown__chips a:hover { background: var(--grad-blue); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 18px -8px rgba(4,107,210,.6); }
 
 .nav__cta { margin-left: 8px; }
+.nav__menu > .nav__cta { display: none; } /* in-menu CTA is desktop-hidden; shown only in mobile drawer */
 .nav__toggle { display: none; width: 46px; height: 46px; border-radius: 12px; align-items: center; justify-content: center; margin-left: auto; transition: background .25s; }
 .nav__toggle:hover { background: rgba(4,107,210,.08); }
 .nav__toggle span { display: block; width: 24px; height: 2.5px; background: #fff; border-radius: 3px; position: relative; transition: .3s var(--ease); }
@@ -685,7 +686,7 @@ body.nav-open .nav__toggle span::after { top: 0; transform: rotate(-45deg); back
   .nav__item.open > .dropdown, .nav__item.open > .dropdown--mega { display: block; animation: fadeUp .4s ease; }
   .nav__item:hover > .dropdown { transform: none; }
   .nav__item.open > .nav__link .caret { transform: rotate(180deg); }
-  .nav__cta { margin: 16px 12px 0; }
+  .nav__menu > .nav__cta { display: block; margin: 16px 12px 0; }
   .nav__cta .btn { width: 100%; }
   body.nav-open .nav__backdrop { display: block; position: fixed; inset: 0; background: rgba(8, 17, 32, .5); z-index: 999; backdrop-filter: blur(2px); }
 }
@@ -773,7 +774,7 @@ body.nav-open .nav__toggle span::after { top: 0; transform: rotate(-45deg); back
   background: repeating-linear-gradient(90deg, rgba(255,255,255,.5) 0 8px, transparent 8px 16px); transform: translateY(-50%); }
 .preloader__route::after { content: ""; position: absolute; top: 50%; left: 0; width: 10px; height: 10px; border-radius: 50%;
   background: var(--gold); transform: translate(-50%,-50%); box-shadow: 0 0 0 4px rgba(230,169,59,.25); }
-.preloader__plane { position: absolute; top: 50%; left: 0; color: #fff; transform: translate(-50%,-50%) rotate(0deg);
+.preloader__plane { position: absolute; top: 50%; left: 0; color: #fff; transform: translate(-50%,-50%) rotate(90deg);
   animation: plFly 1.6s var(--ease) infinite; }
 .preloader__plane svg { width: 26px; height: 26px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
 @keyframes plFly { 0% { left: 0; } 100% { left: 100%; } }
