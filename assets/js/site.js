@@ -126,7 +126,7 @@
             "</ul>" +
             '<div class="footer__socials">' +
               '<a href="https://facebook.com/vandanatravelexperts" target="_blank" rel="noopener" aria-label="Facebook">' + I.fb + "</a>" +
-              '<a href="#" aria-label="Twitter">' + I.tw + "</a>" +
+              '<a href="https://x.com/travelvte" target="_blank" rel="noopener" aria-label="X (Twitter)">' + I.tw + "</a>" +
               '<a href="https://instagram.com/vandanatravelexperts" target="_blank" rel="noopener" aria-label="Instagram">' + I.insta + "</a>" +
               '<a href="https://wa.me/' + WA + '" aria-label="WhatsApp">' + I.wa + "</a>" +
             "</div>" +
@@ -146,10 +146,6 @@
               "<li><span>UDYAM</span> MH-27-0108357</li>" +
               "<li><span>Min. of Tourism, Govt. of India</span> 2110240HE706</li>" +
             "</ul>" +
-            '<div class="footer__apps">' +
-              '<a href="#"><img src="assets/img/playstore.jpg" alt="Get it on Google Play"></a>' +
-              '<a href="#"><img src="assets/img/appstore.png" alt="Download on the App Store"></a>' +
-            "</div>" +
           "</div>" +
         "</div>" +
         '<div class="footer__note">Promoted by ex-employees of Sahara Airlines, Kingfisher Airlines, HDFC &amp; leading DMCs · Varanasi–Prayagraj–Ayodhya–Sri Lanka–Seychelles–Maldives — Pure B2B Experts. ' +
