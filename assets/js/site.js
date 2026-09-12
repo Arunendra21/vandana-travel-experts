@@ -73,7 +73,7 @@
       '<div class="container"><nav class="nav">' +
         '<a class="nav__logo" href="index.html" aria-label="Vandana Travel Experts home">' +
           '<img src="assets/img/logo.png" alt="Vandana Travel Experts logo">' +
-          '<span class="nav__logo-text"><span class="ln"><b>Vandana</b> Travel Experts</span><small>We Keep it Simple</small></span>' +
+          '<span class="nav__logo-text"><span class="ln"><b>Vandana</b> Travel Experts</span></span>' +
         "</a>" +
         '<button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false"><span></span></button>' +
         '<ul class="nav__menu">' +
@@ -143,8 +143,6 @@
           '<div class="footer__col"><h4>Registrations</h4>' +
             '<ul class="footer__reg">' +
               "<li><span>IATA TIDS</span> 96097120</li>" +
-              "<li><span>GSTIN</span> 27BOQPM8950J1Z3</li>" +
-              "<li><span>UDYAM</span> MH-27-0108357</li>" +
               "<li><span>Min. of Tourism, Govt. of India</span> 2110240HE706</li>" +
             "</ul>" +
           "</div>" +
@@ -201,7 +199,7 @@
   var DESTS = [
     { name: "Europe", img: "dest-europe.png" }, { name: "Australia", img: "dest-australia.png" },
     { name: "Ladakh", img: "dest-ladakh.png" }, { name: "Sikkim", img: "dest-sikkim.png" },
-    { name: "Dubai", img: "dest-dubai.png" }, { name: "America", img: "dest-america.png" },
+    { name: "Dubai", img: "dest-dubai.png" }, { name: "USA", img: "dest-america.png" },
     { name: "Japan", img: "dest-japan.png" }, { name: "Kerala", img: "dest-kerala.png" },
     { name: "Bhutan", img: "dest-bhutan.png" }, { name: "Thailand", img: "dest-thailand.png" },
     { name: "Kashmir", img: "dest-kashmir.png" }, { name: "Ooty", img: "dest-ooty.png" }
