@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tour Packages — Vandana Travel Experts</title>
+  <meta name="description" content="Explore Vandana Travel Experts' national and international tour packages — curated holidays across India and the world with detailed itineraries, inclusions and easy booking.">
+  <link rel="icon" type="image/png" href="assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="packages">
+  <div id="preloader" class="preloader" aria-hidden="true">
+    <div class="preloader__box">
+      <img class="preloader__logo" src="assets/img/logo.png" alt="Vandana Travel Experts">
+      <div class="preloader__route"><span class="preloader__plane"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span></div>
+      <div class="preloader__bar"><i></i></div>
+      <div class="preloader__tag">We Keep it Simple</div>
+    </div>
+  </div>
+
+  <header id="site-header" class="site-header"></header>
+
+  <section class="page-hero page-hero--contact">
+    <div class="container">
+      <h1>Tour Packages</h1>
+      <div class="breadcrumb"><a href="index.html">Home</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <span>Packages</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head reveal" style="margin-bottom:34px">
+        <span class="eyebrow">Where to next?</span>
+        <h2 class="section-title">National &amp; International <span class="accent">Holidays</span></h2>
+        <p class="section-sub">Handcrafted itineraries with stays, sightseeing and transfers. Filter by destination type or search for your dream trip — prices are shared on request based on your dates and group size.</p>
+      </div>
+
+      <div class="pkgs-toolbar reveal">
+        <div class="filter-tabs">
+          <button class="filter-tab is-active" data-filter="all">All Tours</button>
+          <button class="filter-tab" data-filter="International">International</button>
+          <button class="filter-tab" data-filter="National">National (India)</button>
+        </div>
+        <div class="pkgs-count" id="pkgs-count"></div>
+        <div class="pkgs-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="pkgs-search" placeholder="Search destinations — Dubai, Switzerland, Goa…" aria-label="Search packages">
+        </div>
+      </div>
+
+      <div class="pkg-grid" id="pkgs-grid"></div>
+      <div class="pkgs-empty" id="pkgs-empty">No packages match your search. Try a different destination or <a href="contact.html">ask us for a custom trip</a>.</div>
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="container">
+      <div class="cta-banner reveal">
+        <h2>Can't Find Your Perfect Trip?</h2>
+        <p>We craft fully customised holidays for families, couples, groups and corporates. Tell us where you'd like to go and we'll build it around you.</p>
+        <a class="btn btn--gold" href="contact.html">Plan a Custom Trip</a>
+      </div>
+    </div>
+  </section>
+
+  <footer id="site-footer" class="footer"></footer>
+  <script src="assets/js/packages.js"></script>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>

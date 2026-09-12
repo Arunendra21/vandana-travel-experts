@@ -12,6 +12,15 @@
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body data-page="home">
+  <div id="preloader" class="preloader" aria-hidden="true">
+    <div class="preloader__box">
+      <img class="preloader__logo" src="assets/img/logo.png" alt="Vandana Travel Experts">
+      <div class="preloader__route"><span class="preloader__plane"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span></div>
+      <div class="preloader__bar"><i></i></div>
+      <div class="preloader__tag">We Keep it Simple</div>
+    </div>
+  </div>
+
   <header id="site-header" class="site-header"></header>
 
   <!-- ============ HERO ============ -->
@@ -95,10 +104,13 @@
       </div>
       <div class="pkg-tabs reveal">
         <button class="pkg-tab is-active" data-target="pkg-intl">International Tours</button>
-        <button class="pkg-tab" data-target="pkg-dom">Domestic Tours</button>
+        <button class="pkg-tab" data-target="pkg-dom">National Tours</button>
       </div>
       <div class="pkg-panel is-active" id="pkg-intl"><div class="pkg-grid" id="pkg-intl-grid" aria-label="International packages"></div></div>
-      <div class="pkg-panel" id="pkg-dom"><div class="pkg-grid" id="pkg-dom-grid" aria-label="Domestic packages"></div></div>
+      <div class="pkg-panel" id="pkg-dom"><div class="pkg-grid" id="pkg-dom-grid" aria-label="National packages"></div></div>
+      <div class="reveal" style="text-align:center;margin-top:44px">
+        <a class="btn btn--primary" href="packages.html">View All Packages <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+      </div>
     </div>
     <span id="domestic"></span>
   </section>
@@ -238,6 +250,7 @@
   </section>
 
   <footer id="site-footer" class="footer"></footer>
+  <script src="assets/js/packages.js"></script>
   <script src="assets/js/site.js"></script>
 </body>
 </html>
