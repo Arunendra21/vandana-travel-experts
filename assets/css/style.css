@@ -1001,3 +1001,9 @@ body.modal-open { overflow: hidden; }
 .why-item p { font-size: .88rem; color: var(--slate-500); }
 @media (max-width: 900px) { .why-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px) { .why-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Affiliation real-logo cards ---------- */
+.affil { justify-content: center; min-height: 150px; }
+.affil__logo { height: 74px; display: grid; place-items: center; margin-bottom: 10px; width: 100%; }
+.affil__logo img { max-height: 74px; max-width: 90%; width: auto; object-fit: contain; }
+.affil .affil__sub { font-weight: 600; color: var(--slate); }

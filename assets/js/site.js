@@ -547,36 +547,38 @@
   function initForms() { document.querySelectorAll("form[data-form]").forEach(initForm); }
 
   /* ================= ABOUT PAGE (affiliations + why-us) ================= */
-  // Original credential-seal badge artwork (not third-party trademark logos).
-  function affilSeal(a) {
-    var ac = a.ac, size = ac.length >= 5 ? 18 : 23;
-    return '<div class="affil reveal">' +
-      '<div class="affil__seal" style="--c:' + a.c + '">' +
+  function affilCard(a) {
+    var inner;
+    if (a.img) {
+      inner = '<div class="affil__logo"><img src="assets/img/logos/' + a.img + '" alt="' + esc(a.name) + ' logo" loading="lazy"></div>' +
+        (a.sub ? '<div class="affil__sub">' + a.sub + "</div>" : "");
+    } else {
+      var size = a.ac.length >= 5 ? 18 : 23;
+      inner = '<div class="affil__seal" style="--c:' + a.c + '">' +
         '<svg viewBox="0 0 100 100" aria-hidden="true">' +
           '<circle cx="50" cy="50" r="47" fill="#fff" stroke="var(--c)" stroke-width="2.5"/>' +
           '<circle cx="50" cy="50" r="40" fill="none" stroke="var(--c)" stroke-width="1" stroke-dasharray="1.5 3" opacity=".55"/>' +
           '<path d="M50 9 l2.5 5.1 5.6.8-4 4 .9 5.6-5-2.6-5 2.6 .9-5.6-4-4 5.6-.8z" fill="var(--c)"/>' +
           '<path d="M27 74 q23 12 46 0" fill="none" stroke="var(--c)" stroke-width="1" opacity=".5"/>' +
-          '<text x="50" y="57" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="' + size + '" fill="var(--c)">' + ac + '</text>' +
-        "</svg>" +
-      "</div>" +
-      '<div class="affil__name">' + a.name + "</div>" +
-      '<div class="affil__sub">' + a.sub + "</div>" +
-    "</div>";
+          '<text x="50" y="57" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="' + size + '" fill="var(--c)">' + a.ac + "</text>" +
+        "</svg></div>" +
+        '<div class="affil__name">' + a.name + "</div><div class=\"affil__sub\">" + a.sub + "</div>";
+    }
+    return '<div class="affil reveal">' + inner + "</div>";
   }
   function renderAbout() {
     var ag = document.getElementById("affil-grid");
     if (ag) {
       var affils = [
-        { ac: "IATA", name: "IATA", sub: "TIDS 96097120", c: "#046bd2" },
+        { name: "IATA", img: "iata.svg", sub: "TIDS: 96097120" },
         { ac: "TAAI", name: "TAAI", sub: "Member", c: "#0ea5e9" },
         { ac: "TAFI", name: "TAFI", sub: "Member", c: "#16a34a" },
         { ac: "ADTOI", name: "ADTOI", sub: "Member", c: "#e6a93b" },
         { ac: "NIDHI", name: "NIDHI", sub: "Registered", c: "#7c3aed" },
-        { ac: "IATO", name: "IATO", sub: "Member", c: "#dc2626" },
-        { ac: "MoT", name: "Ministry of Tourism", sub: "Govt. of India · 2110240HE706", c: "#0f766e" }
+        { name: "IATO", img: "iato.png", sub: "Member" },
+        { name: "Ministry of Tourism", img: "mot.svg", sub: "Govt. of India · 2110240HE706" }
       ];
-      ag.innerHTML = affils.map(affilSeal).join("");
+      ag.innerHTML = affils.map(affilCard).join("");
     }
     var wg = document.getElementById("why-grid");
     if (wg) {
