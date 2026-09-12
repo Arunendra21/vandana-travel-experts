@@ -149,8 +149,7 @@
             "</ul>" +
           "</div>" +
         "</div>" +
-        '<div class="footer__note">Promoted by ex-employees of Sahara Airlines, Kingfisher Airlines, HDFC &amp; leading DMCs · Varanasi–Prayagraj–Ayodhya–Sri Lanka–Seychelles–Maldives — Pure B2B Experts. ' +
-          '<strong>Please do not deposit any cash directly into our account for services rendered; such deposits will not be treated as payment against your outstanding.</strong></div>' +
+        '<div class="footer__note">Promoted by ex-employees of Sahara Airlines, Kingfisher Airlines, HDFC &amp; leading DMCs.</div>' +
         '<div class="footer__bottom">' +
           "<span>© " + yr + " Vandana Travel Experts. All rights reserved.</span>" +
           '<ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="cancellation.html">Cancellation &amp; Refund Policy</a></li></ul>' +
@@ -485,11 +484,11 @@
       var affils = [
         { name: "IATA", img: "iata.svg", sub: "TIDS: 96097120" },
         { ac: "TAAI", name: "TAAI", sub: "Member", c: "#0ea5e9" },
-        { ac: "TAFI", name: "TAFI", sub: "Member", c: "#16a34a" },
-        { ac: "ADTOI", name: "ADTOI", sub: "Member", c: "#e6a93b" },
-        { ac: "NIDHI", name: "NIDHI", sub: "Registered", c: "#7c3aed" },
+        { name: "TAFI", img: "tafi.png", sub: "Member" },
+        { name: "ADTOI", img: "adtoi.webp", sub: "Member" },
+        { name: "NIDHI", img: "nidhi.jpg", sub: "Registered" },
         { name: "IATO", img: "iato.png", sub: "Member" },
-        { name: "Ministry of Tourism", img: "mot.svg", sub: "Govt. of India · 2110240HE706" }
+        { name: "Ministry of Tourism", img: "mot.webp", sub: "Recognition No. 2110240HE706" }
       ];
       ag.innerHTML = affils.map(affilCard).join("");
     }
