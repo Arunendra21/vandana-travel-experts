@@ -160,7 +160,7 @@ module.exports = async function (req, res) {
         destinations: dests,
         disclaimer: "Visa rules and fees change frequently. This information is guidance only — always confirm with the official authority before you travel.",
         checked: CHECKED
-      }, 86400);
+      }, 3600);
     }
 
     var from = String(url.searchParams.get("from") || "IN").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);

@@ -717,7 +717,7 @@
             return '<button class="visa-dest reveal" data-visa="' + x.id + '" type="button">' +
               '<img src="assets/img/' + VISA_IMG[x.id] + '" alt="' + esc(x.country) + '" loading="lazy">' +
               '<span class="visa-dest__grad"></span>' +
-              '<span class="visa-dest__body"><span class="visa-dest__name">' + esc(x.country) + '</span><span class="visa-badge visa-badge--sm ' + visaBadgeCls(x.status) + '">' + esc(x.statusLabel) + "</span></span></button>";
+              '<span class="visa-dest__body"><span class="visa-dest__name">' + esc(x.country) + '</span><span class="visa-badge visa-badge--sm ' + visaBadgeCls(x.status) + '">' + esc(x.statusLabel || "Check") + "</span></span></button>";
           }).join("");
           revealAll();
         }
