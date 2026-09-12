@@ -302,12 +302,13 @@ body.nav-open .nav__toggle span::after { top: 0; transform: rotate(-45deg); back
 .strip::before, .strip::after { content: ""; position: absolute; top: 0; bottom: 0; width: 110px; z-index: 2; pointer-events: none; }
 .strip::before { left: 0; background: linear-gradient(90deg, var(--navy), transparent); }
 .strip::after { right: 0; background: linear-gradient(-90deg, var(--navy), transparent); }
-.strip__track { display: flex; align-items: center; gap: 24px; width: max-content; animation: strip 40s linear infinite; }
+.strip__track { display: flex; align-items: center; width: max-content; animation: strip 40s linear infinite; }
 .strip:hover .strip__track { animation-play-state: paused; }
+.strip__seq { display: flex; align-items: center; gap: 24px; padding-right: 24px; flex-shrink: 0; }
 .strip__track span { font-family: var(--ff-head); font-weight: 600; font-size: 1.05rem; color: rgba(255, 255, 255, .84); white-space: nowrap; letter-spacing: .01em; transition: color .3s; }
 .strip__track span:hover { color: var(--gold-soft); }
 .strip__track i { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
-@keyframes strip { to { transform: translateX(-50%); } }
+@keyframes strip { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 /* =========================================================
    FEATURE STRIP (lifted band over hero seam)

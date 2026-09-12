@@ -125,7 +125,7 @@
               "<li>" + I.pin + "<span>1604, 16th Floor, Kamdhenu Commerz, Sector 14, Kharghar, Navi Mumbai – 410210</span></li>" +
             "</ul>" +
             '<div class="footer__socials">' +
-              '<a href="#" aria-label="Facebook">' + I.fb + "</a>" +
+              '<a href="https://facebook.com/vandanatravelexperts" target="_blank" rel="noopener" aria-label="Facebook">' + I.fb + "</a>" +
               '<a href="#" aria-label="Twitter">' + I.tw + "</a>" +
               '<a href="#" aria-label="Instagram">' + I.insta + "</a>" +
               '<a href="#" aria-label="YouTube">' + I.yt + "</a>" +
@@ -476,6 +476,27 @@
     window.addEventListener("resize", function () { go(idx); });
   }
 
+  /* ================= MARQUEE STRIP (seamless, any width) ================= */
+  function initMarquee() {
+    var track = document.querySelector(".strip__track");
+    var seq = track && track.querySelector(".strip__seq");
+    var strip = document.querySelector(".strip");
+    if (!seq || !strip) return;
+    var base = seq.innerHTML;
+    // Grow the first sequence until it is at least as wide as the viewport,
+    // so one "half" of the track always covers the screen (no trailing gap).
+    var guard = 0;
+    while (seq.scrollWidth < strip.clientWidth + 120 && guard < 40) { seq.innerHTML += base; guard++; }
+    // Duplicate the (now wide) sequence so the track is exactly two identical
+    // halves — translateX(-50%) then loops perfectly seamlessly, forever.
+    if (!track.querySelector(".strip__seq--clone")) {
+      var clone = seq.cloneNode(true);
+      clone.classList.add("strip__seq--clone");
+      clone.setAttribute("aria-hidden", "true");
+      track.appendChild(clone);
+    }
+  }
+
   /* ================= HERO ================= */
   function heroSlides() {
     var slides = document.querySelectorAll(".hero__slide");
@@ -552,6 +573,7 @@
     renderPackagesPage();
     renderPackageDetail();
     renderTestimonials();
+    initMarquee();
     heroSlides();
     heroParallax();
     initBookingTriggers();
