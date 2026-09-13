@@ -1,9 +1,11 @@
 /* PUBLIC  POST /api/inquiry  -> validate, store in DB (private), email the team,
    return success. The inquiry lives in the database so the admin can manage it,
-   AND an email is sent (best-effort). Honeypot + rate-limit guard against spam. */
+   AND an email is sent (best-effort). Honeypot + rate-limit guard against spam.
+   The inquiry is ALWAYS stored even if the email fails, and email_status
+   (sent/failed) is persisted so an admin can retry delivery later. */
 var db = require("./_db");
+var mail = require("./_mail");
 
-var EMAIL = "vandanatravelexperts@gmail.com";
 var RATE = new Map();
 
 function send(res, status, body) {
@@ -23,20 +25,6 @@ function readBody(req) {
   });
 }
 function clip(v, n) { return String(v == null ? "" : v).trim().slice(0, n || 400); }
-
-async function emailTeam(f) {
-  try {
-    var params = new URLSearchParams();
-    params.set("_subject", "New enquiry — " + (f.package || "Website"));
-    params.set("_template", "table");
-    params.set("Name", f.name); params.set("Email", f.email); params.set("Phone", f.phone);
-    params.set("Package", f.package); params.set("Travellers", f.travellers);
-    params.set("Travel date", f.travel_date); params.set("Message", f.message); params.set("Source", f.source);
-    var ctrl = new AbortController(); var t = setTimeout(function () { ctrl.abort(); }, 7000);
-    await fetch("https://formsubmit.co/ajax/" + EMAIL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" }, body: params.toString(), signal: ctrl.signal }).finally(function () { clearTimeout(t); });
-    return true;
-  } catch (e) { return false; }
-}
 
 module.exports = async function (req, res) {
   if (req.method === "OPTIONS") return send(res, 204, {});
@@ -59,15 +47,18 @@ module.exports = async function (req, res) {
   };
   if (!f.name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return send(res, 400, { ok: false, error: "invalid", message: "Please provide your name and a valid email." });
 
-  var stored = false;
+  // 1) Persist the inquiry FIRST — it must never be lost even if email fails.
+  var stored = false, inquiryId = null;
   if (db.dbConfigured()) {
     try {
       await db.ensureSchema();
-      await db.sql`INSERT INTO inquiries (name, email, phone, package, travellers, travel_date, message, source, ip)
-        VALUES (${f.name}, ${f.email}, ${f.phone}, ${f.package}, ${f.travellers}, ${f.travel_date}, ${f.message}, ${f.source}, ${ip})`;
-      stored = true;
-    } catch (e) { /* still try to email */ }
+      var ins = await db.sql`INSERT INTO inquiries (name, email, phone, package, travellers, travel_date, message, source, ip, email_status)
+        VALUES (${f.name}, ${f.email}, ${f.phone}, ${f.package}, ${f.travellers}, ${f.travel_date}, ${f.message}, ${f.source}, ${ip}, 'pending') RETURNING id`;
+      stored = true; inquiryId = ins.rows[0].id;
+    } catch (e) { /* still try to email below */ }
   }
-  var emailed = await emailTeam(f);
+  // 2) Best-effort email, then record delivery status so admins can retry failures.
+  var emailed = await mail.emailTeam(f);
+  if (inquiryId != null) { try { await db.sql`UPDATE inquiries SET email_status = ${emailed ? "sent" : "failed"} WHERE id = ${inquiryId}`; } catch (e) {} }
   return send(res, 200, { ok: true, stored: stored, emailed: emailed });
 };

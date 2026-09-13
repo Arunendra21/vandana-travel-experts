@@ -22,10 +22,12 @@ async function ensureSchema() {
     id SERIAL PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     pass TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin',
     token_version INTEGER NOT NULL DEFAULT 0,
     must_change BOOLEAN NOT NULL DEFAULT FALSE,
     failed INTEGER NOT NULL DEFAULT 0,
     locked_until TIMESTAMPTZ,
+    last_login TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`;
   await sql`CREATE TABLE IF NOT EXISTS packages (
@@ -64,6 +66,7 @@ async function ensureSchema() {
     message TEXT,
     source TEXT,
     status TEXT NOT NULL DEFAULT 'new',
+    email_status TEXT NOT NULL DEFAULT 'pending',
     ip TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`;
@@ -74,6 +77,12 @@ async function ensureSchema() {
     detail TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`;
+  // Idempotent migrations for databases created before these columns/indexes existed.
+  await sql`ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS email_status TEXT NOT NULL DEFAULT 'pending'`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin'`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_pkg_pub ON packages (status, deleted, sort)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_inq_created ON inquiries (created_at DESC)`;
 }
 
 async function audit(email, action, detail) {

@@ -6,6 +6,7 @@ var db = require("../_db");
 var auth = require("../_auth");
 var pkg = require("../_pkg");
 var seed = require("../_seed");
+var mail = require("../_mail");
 var blob = require("@vercel/blob");
 
 var STATUSES = ["new", "contacted", "in_progress", "confirmed", "closed"];
@@ -80,7 +81,7 @@ async function doLogin(req, res) {
     if (admin) { var failed = (admin.failed || 0) + 1; var lock = failed >= 5 ? new Date(Date.now() + 15 * 60000).toISOString() : null; await db.sql`UPDATE admins SET failed = ${failed}, locked_until = ${lock} WHERE id = ${admin.id}`; }
     return auth.json(res, 401, { ok: false, error: "invalid", message: "Invalid email or password." });
   }
-  await db.sql`UPDATE admins SET failed = 0, locked_until = NULL WHERE id = ${admin.id}`;
+  await db.sql`UPDATE admins SET failed = 0, locked_until = NULL, last_login = now() WHERE id = ${admin.id}`;
   auth.setSession(res, admin);
   await db.audit(admin.email, "login", null);
   return auth.json(res, 200, { ok: true, email: admin.email, mustChange: admin.must_change });
@@ -136,7 +137,8 @@ async function doDashboard(req, res) {
   var q = await db.sql`SELECT COUNT(*)::int AS total,
       COUNT(*) FILTER (WHERE status = 'new')::int AS new,
       COUNT(*) FILTER (WHERE status IN ('contacted','in_progress'))::int AS pending,
-      COUNT(*) FILTER (WHERE status IN ('confirmed','closed'))::int AS processed FROM inquiries`;
+      COUNT(*) FILTER (WHERE status IN ('confirmed','closed'))::int AS processed,
+      COUNT(*) FILTER (WHERE email_status = 'failed')::int AS email_failed FROM inquiries`;
   return auth.json(res, 200, {
     ok: true, packages: p.rows[0], inquiries: q.rows[0],
     apis: {
@@ -252,7 +254,7 @@ async function doActions(req, res) {
   return auth.json(res, 400, { ok: false, error: "bad_op" });
 }
 
-/* ---------- inquiries (list / one / status) ---------- */
+/* ---------- inquiries (list / one / status / retry email / delete) ---------- */
 async function doInquiries(req, res, url) {
   var admin = await auth.requireAdmin(req);
   if (!admin) return auth.json(res, 401, { ok: false, error: "unauthorized" });
@@ -263,18 +265,49 @@ async function doInquiries(req, res, url) {
       if (!one.rows.length) return auth.json(res, 404, { ok: false, error: "not_found" });
       return auth.json(res, 200, { ok: true, inquiry: one.rows[0] });
     }
-    var r = await db.sql`SELECT id, name, email, phone, package, travel_date, status, created_at FROM inquiries ORDER BY created_at DESC LIMIT 500`;
+    // Optional server-side search + status filter (indexed, capped).
+    var term = "%" + String(url.searchParams.get("q") || "").trim().toLowerCase() + "%";
+    var status = String(url.searchParams.get("status") || "").trim();
+    var hasStatus = STATUSES.indexOf(status) >= 0;
+    var r;
+    if (hasStatus) {
+      r = await db.sql`SELECT id, name, email, phone, package, travel_date, status, email_status, created_at FROM inquiries
+        WHERE status = ${status} AND (${term} = '%%' OR lower(name) LIKE ${term} OR lower(email) LIKE ${term} OR lower(package) LIKE ${term})
+        ORDER BY created_at DESC LIMIT 500`;
+    } else {
+      r = await db.sql`SELECT id, name, email, phone, package, travel_date, status, email_status, created_at FROM inquiries
+        WHERE (${term} = '%%' OR lower(name) LIKE ${term} OR lower(email) LIKE ${term} OR lower(package) LIKE ${term})
+        ORDER BY created_at DESC LIMIT 500`;
+    }
     return auth.json(res, 200, { ok: true, inquiries: r.rows });
   }
   if (req.method === "PUT") {
     if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
     if (!id) return auth.json(res, 400, { ok: false, error: "bad_id" });
-    var st = String((await auth.readBody(req)).status || "");
-    if (STATUSES.indexOf(st) < 0) return auth.json(res, 400, { ok: false, error: "bad_status" });
-    var g = await db.sql`SELECT id FROM inquiries WHERE id = ${id} LIMIT 1`;
+    var body = await auth.readBody(req);
+    var g = await db.sql`SELECT * FROM inquiries WHERE id = ${id} LIMIT 1`;
     if (!g.rows.length) return auth.json(res, 404, { ok: false, error: "not_found" });
+    // Retry a failed/pending email delivery.
+    if (body.op === "retry_email") {
+      var q = g.rows[0];
+      var ok = await mail.emailTeam({ name: q.name, email: q.email, phone: q.phone, package: q.package, travellers: q.travellers, travel_date: q.travel_date, message: q.message, source: q.source });
+      await db.sql`UPDATE inquiries SET email_status = ${ok ? "sent" : "failed"} WHERE id = ${id}`;
+      await db.audit(admin.email, "inquiry_retry_email", "#" + id + " -> " + (ok ? "sent" : "failed"));
+      return auth.json(res, ok ? 200 : 502, { ok: ok, email_status: ok ? "sent" : "failed", message: ok ? "Email sent." : "Email provider did not accept the message. Try again shortly." });
+    }
+    // Change workflow status.
+    var st = String(body.status || "");
+    if (STATUSES.indexOf(st) < 0) return auth.json(res, 400, { ok: false, error: "bad_status" });
     await db.sql`UPDATE inquiries SET status = ${st} WHERE id = ${id}`;
     await db.audit(admin.email, "inquiry_status", "#" + id + " -> " + st);
+    return auth.json(res, 200, { ok: true });
+  }
+  if (req.method === "DELETE") {
+    if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
+    if (!id) return auth.json(res, 400, { ok: false, error: "bad_id" });
+    var d = await db.sql`DELETE FROM inquiries WHERE id = ${id} RETURNING id`;
+    if (!d.rows.length) return auth.json(res, 404, { ok: false, error: "not_found" });
+    await db.audit(admin.email, "inquiry_delete", "#" + id);
     return auth.json(res, 200, { ok: true });
   }
   return auth.json(res, 405, { ok: false, error: "method_not_allowed" });

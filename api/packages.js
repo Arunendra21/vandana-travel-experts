@@ -7,7 +7,13 @@ var db = require("./_db");
 function send(res, status, body, cacheSec) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Cache-Control", cacheSec ? "public, max-age=" + cacheSec + ", s-maxage=" + cacheSec : "no-store");
+  // Browsers always revalidate (max-age=0); the CDN serves a cached copy for a
+  // short window and refreshes in the background (stale-while-revalidate), so
+  // admin publish/unpublish changes reach visitors within seconds, while the
+  // origin stays protected from traffic spikes.
+  res.setHeader("Cache-Control", cacheSec
+    ? "public, max-age=0, s-maxage=" + cacheSec + ", stale-while-revalidate=60"
+    : "no-store");
   res.statusCode = status; res.end(JSON.stringify(body));
 }
 
@@ -29,7 +35,7 @@ module.exports = async function (req, res) {
         featured: !!p.featured
       };
     });
-    return send(res, 200, { ok: true, configured: true, packages: packages }, 60);
+    return send(res, 200, { ok: true, configured: true, packages: packages }, 15);
   } catch (e) {
     return send(res, 200, { ok: false, configured: false, packages: [], error: "server_error" }, 15);
   }

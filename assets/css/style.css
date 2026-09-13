@@ -1141,3 +1141,12 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 1080px) { .visa-dest-grid { grid-template-columns: repeat(4, 1fr); } .visa-types { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 760px) { .visa-dest-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 520px) { .visa-dest-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .visa-types { grid-template-columns: 1fr; } }
+
+/* Empty-state note for package grids (shown when the DB has no published
+   packages in a category — keeps the layout graceful instead of a blank grid). */
+.pkg-empty-note{
+  grid-column:1/-1; text-align:center; color:var(--slate,#64748b);
+  padding:40px 20px; font-size:1.02rem; line-height:1.6;
+  background:rgba(4,107,210,.04); border:1px dashed rgba(4,107,210,.25); border-radius:16px;
+}
+.pkg-empty-note a{color:var(--blue,#046bd2); font-weight:600;}

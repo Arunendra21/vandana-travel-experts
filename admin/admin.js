@@ -303,19 +303,31 @@
   window.addEventListener("beforeunload", function (e) { if (isDirty) { e.preventDefault(); e.returnValue = ""; } });
 
   /* ================= INQUIRIES ================= */
+  function emailPill(s) {
+    var map = { sent: ["on", "email sent"], failed: ["off", "email failed"], pending: ["draft", "email pending"] };
+    var m = map[s] || map.pending;
+    return '<span class="pill pill--' + m[0] + '" title="Email delivery">' + m[1] + "</span>";
+  }
   function pageInquiries() {
     guard().then(function (me) { if (!me) return; var v = shell("inquiries");
-      v.innerHTML = '<div class="ad-head"><div><h1>Inquiries</h1><p>Customer enquiries submitted through the website. Private — visible to admins only.</p></div></div><div class="ad-panel"><div class="ad-table-wrap"><table class="ad-table"><thead><tr><th>Customer</th><th>Package</th><th>Travel date</th><th>Received</th><th>Status</th><th></th></tr></thead><tbody id="inq-body"><tr><td colspan="6"><div class="ad-loading"><span class="ad-spin"></span> Loading…</div></td></tr></tbody></table></div></div>';
+      v.innerHTML = '<div class="ad-head"><div><h1>Inquiries</h1><p>Customer enquiries submitted through the website. Private — visible to admins only.</p></div></div>' +
+        '<div class="ad-toolbar"><div class="ad-search">' + I.search + '<input id="inq-search" placeholder="Search name, email, package…"></div>' +
+        '<button class="ad-filter is-active" data-s="">All</button><button class="ad-filter" data-s="new">New</button><button class="ad-filter" data-s="contacted">Contacted</button><button class="ad-filter" data-s="in_progress">In progress</button><button class="ad-filter" data-s="confirmed">Confirmed</button><button class="ad-filter" data-s="closed">Closed</button></div>' +
+        '<div class="ad-panel"><div class="ad-table-wrap"><table class="ad-table"><thead><tr><th>Customer</th><th>Package</th><th>Travel date</th><th>Received</th><th>Status</th><th>Email</th><th></th></tr></thead><tbody id="inq-body"><tr><td colspan="7"><div class="ad-loading"><span class="ad-spin"></span> Loading…</div></td></tr></tbody></table></div></div>';
+      var term = "", status = "", timer = null;
       function load() {
-        api("/api/admin/inquiries").then(function (j) {
+        var qsp = "?q=" + encodeURIComponent(term) + (status ? "&status=" + encodeURIComponent(status) : "");
+        api("/api/admin/inquiries" + qsp).then(function (j) {
           var body = $("#inq-body");
-          if (!j.ok || !j.inquiries.length) { body.innerHTML = '<tr><td colspan="6"><div class="ad-empty">' + (j.ok ? "No inquiries yet." : "Could not load.") + "</div></td></tr>"; return; }
+          if (!j.ok || !j.inquiries.length) { body.innerHTML = '<tr><td colspan="7"><div class="ad-empty">' + (j.ok ? "No inquiries found." : "Could not load.") + "</div></td></tr>"; return; }
           body.innerHTML = j.inquiries.map(function (q) {
-            return '<tr data-id="' + q.id + '" style="cursor:pointer"><td><div class="ad-table__title">' + esc(q.name || "—") + '</div><div style="font-size:.78rem;color:var(--a-500)">' + esc(q.email || "") + "</div></td><td>" + esc(q.package || "—") + "</td><td>" + esc(q.travel_date || "—") + "</td><td>" + fmtDate(q.created_at) + '</td><td><span class="pill pill--' + esc(q.status) + '">' + esc(q.status.replace("_", " ")) + '</span></td><td>' + I.eye + "</td></tr>";
+            return '<tr data-id="' + q.id + '" style="cursor:pointer"><td><div class="ad-table__title">' + esc(q.name || "—") + '</div><div style="font-size:.78rem;color:var(--a-500)">' + esc(q.email || "") + "</div></td><td>" + esc(q.package || "—") + "</td><td>" + esc(q.travel_date || "—") + "</td><td>" + fmtDate(q.created_at) + '</td><td><span class="pill pill--' + esc(q.status) + '">' + esc(q.status.replace("_", " ")) + '</span></td><td>' + emailPill(q.email_status) + '</td><td>' + I.eye + "</td></tr>";
           }).join("");
           body.querySelectorAll("tr").forEach(function (tr) { tr.onclick = function () { openInq(tr.getAttribute("data-id"), load); }; });
         });
       }
+      $("#inq-search").addEventListener("input", function () { term = this.value; clearTimeout(timer); timer = setTimeout(load, 250); });
+      v.querySelectorAll(".ad-filter").forEach(function (b) { b.onclick = function () { v.querySelectorAll(".ad-filter").forEach(function (x) { x.classList.remove("is-active"); }); b.classList.add("is-active"); status = b.getAttribute("data-s"); load(); }; });
       load();
     });
   }
@@ -325,16 +337,33 @@
       var q = j.inquiry;
       var m = document.createElement("div"); m.className = "ad-modal open";
       var opts = ["new", "contacted", "in_progress", "confirmed", "closed"].map(function (s) { return '<option value="' + s + '"' + (q.status === s ? " selected" : "") + ">" + s.replace("_", " ") + "</option>"; }).join("");
+      var estatus = q.email_status || "pending";
       m.innerHTML = '<div class="ad-modal__bd"></div><div class="ad-modal__dlg"><button class="ad-modal__x">' + I.x + '</button><h3 style="font-size:1.3rem;color:var(--a-navy);margin-bottom:16px">Inquiry #' + q.id + '</h3>' +
         row("Name", q.name) + row("Email", q.email ? '<a href="mailto:' + esc(q.email) + '">' + esc(q.email) + "</a>" : "—", true) + row("Phone", q.phone ? '<a href="tel:' + esc(q.phone) + '">' + esc(q.phone) + "</a>" : "—", true) +
         row("Package", q.package) + row("Travellers", q.travellers) + row("Travel date", q.travel_date) + row("Source", q.source) + row("Received", fmtDate(q.created_at)) +
+        row("Email delivery", emailPill(estatus) + (estatus !== "sent" ? ' <button class="ad-btn ad-btn--ghost ad-btn--sm" id="inq-retry">Resend email</button>' : ""), true) +
         '<div style="margin:14px 0"><label style="font-weight:600;color:var(--a-navy);font-size:.84rem;display:block;margin-bottom:6px">Message</label><div style="background:var(--a-soft);border:1px solid var(--a-border);border-radius:9px;padding:12px;white-space:pre-wrap;font-size:.9rem">' + esc(q.message || "—") + "</div></div>" +
-        '<div style="display:flex;gap:10px;align-items:flex-end;margin-top:6px"><div class="ad-field" style="flex:1"><label>Status</label><select id="inq-status">' + opts + '</select></div><button class="ad-btn ad-btn--pri" id="inq-save">Update</button></div></div>';
+        '<div style="display:flex;gap:10px;align-items:flex-end;margin-top:6px"><div class="ad-field" style="flex:1"><label>Status</label><select id="inq-status">' + opts + '</select></div><button class="ad-btn ad-btn--pri" id="inq-save">Update</button></div>' +
+        '<div style="margin-top:16px;text-align:right"><button class="ad-btn ad-btn--danger ad-btn--sm" id="inq-del">Delete inquiry</button></div></div>';
       document.body.appendChild(m);
       function close() { m.remove(); }
       m.querySelector(".ad-modal__x").onclick = close; m.querySelector(".ad-modal__bd").onclick = close;
       m.querySelector("#inq-save").onclick = function () {
         api("/api/admin/inquiries?id=" + id, { method: "PUT", body: { status: m.querySelector("#inq-status").value } }).then(function (r) { if (r.ok) { toast("Status updated", "ok"); close(); reload && reload(); } else toast("Failed", "err"); });
+      };
+      var retry = m.querySelector("#inq-retry");
+      if (retry) retry.onclick = function () {
+        retry.disabled = true; retry.textContent = "Sending…";
+        api("/api/admin/inquiries?id=" + id, { method: "PUT", body: { op: "retry_email" } }).then(function (r) {
+          if (r.ok) { toast("Email sent", "ok"); close(); reload && reload(); }
+          else { toast(r.message || "Email failed", "err"); retry.disabled = false; retry.textContent = "Resend email"; }
+        }).catch(function () { toast("Network error", "err"); retry.disabled = false; retry.textContent = "Resend email"; });
+      };
+      m.querySelector("#inq-del").onclick = function () {
+        confirmDialog("Delete inquiry?", "Permanently delete inquiry #" + q.id + " from " + (q.name || "this customer") + "? This cannot be undone.").then(function (yes) {
+          if (!yes) return;
+          api("/api/admin/inquiries?id=" + id, { method: "DELETE" }).then(function (r) { if (r.ok) { toast("Inquiry deleted", "ok"); close(); reload && reload(); } else toast("Failed", "err"); });
+        });
       };
       function row(k, val, html) { return '<div class="ad-detail-row"><span>' + k + "</span><b>" + (html ? (val || "—") : esc(val || "—")) + "</b></div>"; }
     });

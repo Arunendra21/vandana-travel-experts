@@ -222,10 +222,11 @@
     var dg = document.getElementById("dest-grid");
     if (dg) dg.innerHTML = DESTS.map(destCard).join("");
 
+    var emptyMsg = '<p class="pkg-empty-note">New tour packages are being added — please check back soon or <a href="contact.html">contact us</a> for a tailor-made trip.</p>';
     var ig = document.getElementById("pkg-intl-grid");
     var dgp = document.getElementById("pkg-dom-grid");
-    if (ig) ig.innerHTML = PKGS.filter(function (p) { return p.category === "International"; }).slice(0, 6).map(packageCard).join("");
-    if (dgp) dgp.innerHTML = PKGS.filter(function (p) { return p.category === "National"; }).map(packageCard).join("");
+    if (ig) { var intl = PKGS.filter(function (p) { return p.category === "International"; }).slice(0, 6); ig.innerHTML = intl.length ? intl.map(packageCard).join("") : emptyMsg; }
+    if (dgp) { var dom = PKGS.filter(function (p) { return p.category === "National"; }); dgp.innerHTML = dom.length ? dom.map(packageCard).join("") : emptyMsg; }
 
     document.querySelectorAll(".pkg-tab").forEach(function (tab) {
       tab.addEventListener("click", function () {
@@ -767,14 +768,18 @@
     });
   }
 
-  /* Load PUBLISHED packages from the DB (admin-managed); fall back to the bundled
-     static data if the API is unavailable — the site never breaks. */
+  /* The DATABASE is the single source of truth for published packages. Once the
+     backend is configured, whatever it returns is authoritative — INCLUDING an
+     empty list (e.g. the admin unpublished everything), so unpublishing really
+     does clear the public site. The bundled static array in packages.js is a
+     last-resort fallback used ONLY when the API is unreachable or not yet
+     configured, so the site still renders during an outage. */
   function loadPackages(done) {
     var finished = false;
     var to = setTimeout(function () { if (!finished) { finished = true; done(); } }, 2500);
     fetch(API_BASE + "/api/packages").then(function (r) { return r.json(); }).then(function (j) {
       if (finished) return; finished = true; clearTimeout(to);
-      if (j && j.ok && j.configured && j.packages && j.packages.length) { PKGS = j.packages; window.VTE_PACKAGES = j.packages; }
+      if (j && j.ok && j.configured && Array.isArray(j.packages)) { PKGS = j.packages; window.VTE_PACKAGES = j.packages; }
       done();
     }).catch(function () { if (finished) return; finished = true; clearTimeout(to); done(); });
   }
