@@ -4,7 +4,7 @@
   "private": true,
   "description": "Vandana Travel Experts website + secure admin panel (Vercel serverless).",
   "dependencies": {
-    "@vercel/postgres": "^0.10.0",
+    "@neondatabase/serverless": "^1.1.0",
     "@vercel/blob": "^2.8.0"
   }
 }

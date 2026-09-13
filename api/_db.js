@@ -1,10 +1,20 @@
-/* Shared DB layer (Vercel Postgres). Files prefixed with "_" are helpers,
-   not HTTP routes. All queries use parameterised `sql` template tags. */
-var pg = require("@vercel/postgres");
-var sql = pg.sql;
+/* Shared DB layer (Neon serverless Postgres — Vercel's current Postgres).
+   Files prefixed with "_" are helpers, not HTTP routes. The `sql` tagged
+   template parameterises all interpolated values (safe from SQL injection)
+   and, with fullResults, resolves to { rows, rowCount, ... }. */
+var neon = require("@neondatabase/serverless").neon;
 
-function dbConfigured() {
-  return !!(process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING);
+function dburl() {
+  return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED || "";
+}
+function dbConfigured() { return !!dburl(); }
+
+var _sql = null;
+function sql(strings) {
+  if (!_sql) _sql = neon(dburl(), { fullResults: true });
+  var vals = Array.prototype.slice.call(arguments, 1);
+  return _sql.apply(null, [strings].concat(vals));
 }
 
 async function ensureSchema() {
