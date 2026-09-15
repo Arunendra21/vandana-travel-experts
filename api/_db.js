@@ -77,6 +77,20 @@ async function ensureSchema() {
     detail TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`;
+  await sql`CREATE TABLE IF NOT EXISTS documents (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    category TEXT NOT NULL DEFAULT 'General',
+    file_url TEXT NOT NULL,
+    file_name TEXT,
+    file_size INTEGER DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'published',
+    sort INTEGER NOT NULL DEFAULT 0,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`;
   // Idempotent migrations for databases created before these columns/indexes existed.
   await sql`ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS email_status TEXT NOT NULL DEFAULT 'pending'`;
   await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin'`;

@@ -47,7 +47,10 @@
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V3h10z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
     users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-    doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>'
+    doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
+    down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
+    briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>'
   };
   window.VTE_ICONS = I;
 
@@ -80,12 +83,17 @@
           '<li class="nav__item"><a class="nav__link' + act("home") + '" href="index.html">Home</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("about") + '" href="about.html">About Us</a></li>' +
           '<li class="nav__item has-mega"><a class="nav__link' + act("packages") + '" href="packages.html">Packages ' + I.caret + '</a>' + buildPackagesMega() + "</li>" +
-          '<li class="nav__item has-mega"><a class="nav__link' + (act("flights") || act("visa")) + '" href="flights.html">Travel Info ' + I.caret + '</a>' +
+          '<li class="nav__item has-mega"><a class="nav__link' + (act("corporate") || act("mice")) + '" href="corporate-travel.html">Services ' + I.caret + '</a>' +
+            '<div class="dropdown dropdown--tools">' +
+              '<a class="dropdown__link" href="corporate-travel.html">' + I.globe + ' Corporate Travel</a>' +
+              '<a class="dropdown__link" href="mice.html">' + I.star + ' MICE &amp; Events</a>' +
+            "</div></li>" +
+          '<li class="nav__item has-mega"><a class="nav__link' + (act("flights") || act("visa") || act("documents")) + '" href="flights.html">Travel Info ' + I.caret + '</a>' +
             '<div class="dropdown dropdown--tools">' +
               '<a class="dropdown__link" href="flights.html">' + I.plane + ' Live Flight Status</a>' +
               '<a class="dropdown__link" href="visa.html">' + I.doc + ' Visa Requirements</a>' +
+              '<a class="dropdown__link" href="documents.html">' + I.doc + ' Travel Documents</a>' +
             "</div></li>" +
-          '<li class="nav__item"><a class="nav__link" href="index.html#corporate">Corporate Travel</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("contact") + '" href="contact.html">Contact Us</a></li>' +
           '<li class="nav__cta"><a class="btn btn--primary btn--sm" href="contact.html">Get a Quote ' + I.arrow + "</a></li>" +
         "</ul>" +
@@ -140,10 +148,10 @@
           '<div class="footer__col"><h4>Tour Packages</h4><ul>' + pkgLinks.map(function (p) { return '<li><a href="package.html?id=' + p.id + '">' + esc(p.title) + "</a></li>"; }).join("") + '<li><a href="packages.html">View all packages →</a></li></ul></div>' +
           '<div class="footer__col"><h4>Company</h4><ul>' +
             '<li><a href="about.html">About Us</a></li>' +
-            '<li><a href="index.html#corporate">Corporate &amp; MICE</a></li>' +
+            '<li><a href="corporate-travel.html">Corporate Travel</a></li>' +
+            '<li><a href="mice.html">MICE &amp; Events</a></li>' +
+            '<li><a href="documents.html">Travel Documents</a></li>' +
             '<li><a href="contact.html">Contact Us</a></li>' +
-            '<li><a href="packages.html">National &amp; International</a></li>' +
-            '<li><a href="index.html#services">Our Services</a></li>' +
           "</ul></div>" +
           '<div class="footer__col"><h4>Registrations</h4>' +
             '<ul class="footer__reg">' +
@@ -226,7 +234,7 @@
     var ig = document.getElementById("pkg-intl-grid");
     var dgp = document.getElementById("pkg-dom-grid");
     if (ig) { var intl = PKGS.filter(function (p) { return p.category === "International"; }).slice(0, 6); ig.innerHTML = intl.length ? intl.map(packageCard).join("") : emptyMsg; }
-    if (dgp) { var dom = PKGS.filter(function (p) { return p.category === "National"; }); dgp.innerHTML = dom.length ? dom.map(packageCard).join("") : emptyMsg; }
+    if (dgp) { var dom = PKGS.filter(function (p) { return p.category === "National"; }).slice(0, 6); dgp.innerHTML = dom.length ? dom.map(packageCard).join("") : emptyMsg; }
 
     document.querySelectorAll(".pkg-tab").forEach(function (tab) {
       tab.addEventListener("click", function () {
@@ -327,6 +335,56 @@
           '<a class="pkg-booking-card__call" href="tel:' + PHONE + '">' + I.phone + " Call " + PHONE + "</a>" +
         "</div></aside>" +
       "</div></div></section>";
+  }
+
+  /* ================= TRAVEL DOCUMENTS (PDF library) ================= */
+  function fmtSize(n) { n = +n || 0; if (n <= 0) return ""; if (n < 1024 * 1024) return Math.round(n / 1024) + " KB"; return (n / 1048576).toFixed(1) + " MB"; }
+  function docCard(d) {
+    var url = esc(d.file_url || "#");
+    return '<article class="doc-card reveal">' +
+      '<div class="doc-card__badge">' + I.doc + '<span>PDF</span></div>' +
+      '<div class="doc-card__body">' +
+        (d.category ? '<span class="doc-card__cat">' + esc(d.category) + "</span>" : "") +
+        "<h3>" + esc(d.title) + "</h3>" +
+        (d.description ? "<p>" + esc(d.description) + "</p>" : "") +
+        '<div class="doc-card__foot">' +
+          (fmtSize(d.file_size) ? '<span class="doc-card__size">' + fmtSize(d.file_size) + "</span>" : "<span></span>") +
+          '<div class="doc-card__actions">' +
+            '<a class="btn btn--outline btn--sm" href="' + url + '" target="_blank" rel="noopener">' + I.eye + " View</a>" +
+            '<a class="btn btn--primary btn--sm" href="' + url + '" download>' + I.down + " Download</a>" +
+          "</div>" +
+        "</div>" +
+      "</div></article>";
+  }
+  function renderDocsInto(mount, docs, counter) {
+    if (!docs.length) { mount.innerHTML = '<p class="pkg-empty-note">Our travel documents are being prepared — please check back soon or <a href="contact.html">contact us</a> for itineraries.</p>'; if (counter) counter.textContent = ""; return; }
+    var cats = [];
+    docs.forEach(function (d) { var c = d.category || "General"; if (cats.indexOf(c) < 0) cats.push(c); });
+    var html = cats.map(function (c) {
+      var items = docs.filter(function (d) { return (d.category || "General") === c; });
+      return '<div class="doc-group"><h2 class="doc-group__title">' + esc(c) + ' <span>' + items.length + "</span></h2>" +
+        '<div class="doc-grid">' + items.map(docCard).join("") + "</div></div>";
+    }).join("");
+    mount.innerHTML = html;
+    if (counter) counter.textContent = docs.length + (docs.length === 1 ? " document" : " documents");
+    revealAll();
+  }
+  function renderDocuments() {
+    var mount = document.getElementById("docs-library");
+    if (!mount) return;
+    var counter = document.getElementById("docs-count");
+    var all = [];
+    function apply() {
+      var term = (document.getElementById("docs-search") || {}).value || "";
+      term = term.trim().toLowerCase();
+      var list = term ? all.filter(function (d) { return ((d.title || "") + " " + (d.description || "") + " " + (d.category || "")).toLowerCase().indexOf(term) > -1; }) : all;
+      renderDocsInto(mount, list, counter);
+    }
+    fetch(API_BASE + "/api/documents").then(function (r) { return r.json(); }).then(function (j) {
+      all = (j && j.ok && Array.isArray(j.documents)) ? j.documents : [];
+      apply();
+      var s = document.getElementById("docs-search"); if (s) s.addEventListener("input", apply);
+    }).catch(function () { renderDocsInto(mount, [], counter); });
   }
 
   /* ================= BOOKING MODAL ================= */
@@ -803,6 +861,7 @@
       initForms();
       renderFlightsPage();
       renderVisaPage();
+      renderDocuments();
       initObservers();
     });
   });

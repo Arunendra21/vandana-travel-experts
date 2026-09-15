@@ -27,7 +27,10 @@ module.exports = async function (req, res) {
       case "package": return await doPackage(req, res, url);
       case "actions": return await doActions(req, res);
       case "inquiries": return await doInquiries(req, res, url);
+      case "documents": return await doDocuments(req, res);
+      case "document": return await doDocument(req, res, url);
       case "upload": return await doUpload(req, res);
+      case "uploadpdf": return await doUploadPdf(req, res);
       case "audit": return await doAudit(req, res);
       default: return auth.json(res, 404, { ok: false, error: "not_found" });
     }
@@ -139,8 +142,10 @@ async function doDashboard(req, res) {
       COUNT(*) FILTER (WHERE status IN ('contacted','in_progress'))::int AS pending,
       COUNT(*) FILTER (WHERE status IN ('confirmed','closed'))::int AS processed,
       COUNT(*) FILTER (WHERE email_status = 'failed')::int AS email_failed FROM inquiries`;
+  var docs = { total: 0, published: 0 };
+  try { var dr = await db.sql`SELECT COUNT(*) FILTER (WHERE deleted=FALSE)::int AS total, COUNT(*) FILTER (WHERE deleted=FALSE AND status='published')::int AS published FROM documents`; docs = dr.rows[0]; } catch (e) {}
   return auth.json(res, 200, {
-    ok: true, packages: p.rows[0], inquiries: q.rows[0],
+    ok: true, packages: p.rows[0], inquiries: q.rows[0], documents: docs,
     apis: {
       flight: { provider: "AeroDataBox / AviationStack", configured: !!(process.env.AERODATABOX_KEY || process.env.AVIATIONSTACK_KEY) },
       visa: { provider: "Vandana curated (official sources)", configured: true },
@@ -311,6 +316,96 @@ async function doInquiries(req, res, url) {
     return auth.json(res, 200, { ok: true });
   }
   return auth.json(res, 405, { ok: false, error: "method_not_allowed" });
+}
+
+/* ---------- documents (PDF library: list / create) ---------- */
+var DOC_STATUS = ["draft", "published", "unpublished"];
+function cleanDoc(b) {
+  var title = String(b.title == null ? "" : b.title).slice(0, 200).trim();
+  var status = String(b.status || "published"); if (DOC_STATUS.indexOf(status) < 0) status = "published";
+  return {
+    title: title,
+    description: String(b.description == null ? "" : b.description).slice(0, 600),
+    category: String(b.category || "General").slice(0, 60) || "General",
+    file_url: String(b.file_url == null ? "" : b.file_url).slice(0, 600).trim(),
+    file_name: String(b.file_name || "").slice(0, 200),
+    file_size: Math.max(0, parseInt(b.file_size, 10) || 0),
+    status: status,
+    sort: Math.max(0, Math.min(9999, parseInt(b.sort, 10) || 0))
+  };
+}
+async function doDocuments(req, res) {
+  var admin = await auth.requireAdmin(req);
+  if (!admin) return auth.json(res, 401, { ok: false, error: "unauthorized" });
+  if (req.method === "GET") {
+    var r = await db.sql`SELECT id, title, description, category, file_url, file_name, file_size, status, sort, updated_at
+      FROM documents WHERE deleted = FALSE ORDER BY sort ASC, id ASC`;
+    return auth.json(res, 200, { ok: true, documents: r.rows });
+  }
+  if (req.method === "POST") {
+    if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
+    var d = cleanDoc(await auth.readBody(req));
+    if (!d.title) return auth.json(res, 400, { ok: false, error: "invalid", message: "Title is required." });
+    if (!d.file_url) return auth.json(res, 400, { ok: false, error: "invalid", message: "A PDF file or URL is required." });
+    var ins = await db.sql`INSERT INTO documents (title, description, category, file_url, file_name, file_size, status, sort)
+      VALUES (${d.title}, ${d.description}, ${d.category}, ${d.file_url}, ${d.file_name}, ${d.file_size}, ${d.status}, ${d.sort}) RETURNING id`;
+    await db.audit(admin.email, "document_create", d.title);
+    return auth.json(res, 200, { ok: true, id: ins.rows[0].id });
+  }
+  return auth.json(res, 405, { ok: false, error: "method_not_allowed" });
+}
+async function doDocument(req, res, url) {
+  var admin = await auth.requireAdmin(req);
+  if (!admin) return auth.json(res, 401, { ok: false, error: "unauthorized" });
+  var id = parseInt(url.searchParams.get("id"), 10) || 0;
+  if (!id) return auth.json(res, 400, { ok: false, error: "bad_id" });
+  if (req.method === "GET") {
+    var r = await db.sql`SELECT * FROM documents WHERE id = ${id} AND deleted = FALSE LIMIT 1`;
+    if (!r.rows.length) return auth.json(res, 404, { ok: false, error: "not_found" });
+    return auth.json(res, 200, { ok: true, document: r.rows[0] });
+  }
+  if (req.method === "PUT") {
+    if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
+    var d = cleanDoc(await auth.readBody(req));
+    if (!d.title) return auth.json(res, 400, { ok: false, error: "invalid", message: "Title is required." });
+    if (!d.file_url) return auth.json(res, 400, { ok: false, error: "invalid", message: "A PDF file or URL is required." });
+    var ex = await db.sql`SELECT id FROM documents WHERE id = ${id} LIMIT 1`;
+    if (!ex.rows.length) return auth.json(res, 404, { ok: false, error: "not_found" });
+    await db.sql`UPDATE documents SET title=${d.title}, description=${d.description}, category=${d.category},
+      file_url=${d.file_url}, file_name=${d.file_name}, file_size=${d.file_size}, status=${d.status}, sort=${d.sort}, updated_at=now() WHERE id=${id}`;
+    await db.audit(admin.email, "document_update", d.title + " (#" + id + ")");
+    return auth.json(res, 200, { ok: true });
+  }
+  if (req.method === "DELETE") {
+    if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
+    var g = await db.sql`SELECT title FROM documents WHERE id = ${id} LIMIT 1`;
+    if (!g.rows.length) return auth.json(res, 404, { ok: false, error: "not_found" });
+    await db.sql`UPDATE documents SET deleted = TRUE, status = 'unpublished', updated_at = now() WHERE id = ${id}`;
+    await db.audit(admin.email, "document_delete", (g.rows[0].title || "") + " (#" + id + ")");
+    return auth.json(res, 200, { ok: true });
+  }
+  return auth.json(res, 405, { ok: false, error: "method_not_allowed" });
+}
+
+/* ---------- PDF upload (Vercel Blob) ---------- */
+async function doUploadPdf(req, res) {
+  if (req.method !== "POST") return auth.json(res, 405, { ok: false, error: "method_not_allowed" });
+  var admin = await auth.requireAdmin(req);
+  if (!admin) return auth.json(res, 401, { ok: false, error: "unauthorized" });
+  if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return auth.json(res, 500, { ok: false, error: "no_blob", message: "File storage (Vercel Blob) is not configured." });
+  var body = await auth.readBody(req);
+  var mt = String(body.data || "").match(/^data:(application\/pdf);base64,(.+)$/i);
+  if (!mt) return auth.json(res, 400, { ok: false, error: "bad_data", message: "Please choose a valid PDF file." });
+  var buf; try { buf = Buffer.from(mt[2], "base64"); } catch (e) { return auth.json(res, 400, { ok: false, error: "bad_data" }); }
+  if (!buf.length) return auth.json(res, 400, { ok: false, error: "empty" });
+  if (buf.length > 15 * 1024 * 1024) return auth.json(res, 413, { ok: false, error: "too_large", message: "PDF must be 15 MB or smaller." });
+  if (!(buf.length > 4 && buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46)) return auth.json(res, 415, { ok: false, error: "not_pdf", message: "That file is not a valid PDF." });
+  var safe = String(body.filename || "document").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "document";
+  var name = "documents/" + Date.now() + "-" + crypto.randomBytes(5).toString("hex") + "-" + safe + ".pdf";
+  var out = await blob.put(name, buf, { access: "public", contentType: "application/pdf", addRandomSuffix: false });
+  await db.audit(admin.email, "pdf_upload", out.url);
+  return auth.json(res, 200, { ok: true, url: out.url, size: buf.length });
 }
 
 /* ---------- image upload (Vercel Blob) ---------- */

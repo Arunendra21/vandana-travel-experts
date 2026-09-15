@@ -60,7 +60,7 @@
   var ME = null;
   function shell(active) {
     document.body.classList.add("ad-body");
-    var nav = [["index.html", "dashboard", I.dash, "Dashboard"], ["packages.html", "packages", I.box, "Packages"], ["inquiries.html", "inquiries", I.mail, "Inquiries"], ["settings.html", "settings", I.gear, "Settings"]];
+    var nav = [["index.html", "dashboard", I.dash, "Dashboard"], ["packages.html", "packages", I.box, "Packages"], ["documents.html", "documents", I.log, "Documents"], ["inquiries.html", "inquiries", I.mail, "Inquiries"], ["settings.html", "settings", I.gear, "Settings"]];
     document.body.innerHTML =
       '<div class="ad-shell"><aside class="ad-side"><div class="ad-side__brand"><img src="../assets/img/logo.png" alt=""><div><b>Vandana</b><span>Admin Panel</span></div></div>' +
         '<nav class="ad-nav">' + nav.map(function (n) { return '<a href="' + n[0] + '" class="' + (n[1] === active ? "is-active" : "") + '">' + n[2] + n[3] + "</a>"; }).join("") + "</nav>" +
@@ -103,11 +103,11 @@
       v.innerHTML = '<div class="ad-head"><div><h1>Dashboard</h1><p>Overview of your website content and enquiries.</p></div><a class="ad-btn ad-btn--pri" href="package.html">' + I.plus + 'New Package</a></div><div id="dash-cards"><div class="ad-loading"><span class="ad-spin"></span> Loading…</div></div>';
       api("/api/admin/dashboard").then(function (j) {
         if (!j.ok) { $("#dash-cards").innerHTML = '<div class="ad-empty">Could not load stats.</div>'; return; }
-        var p = j.packages, q = j.inquiries;
+        var p = j.packages, q = j.inquiries, dd = j.documents || { total: 0, published: 0 };
         function card(n, l, s) { return '<div class="ad-stat"><b>' + (n == null ? "—" : n) + "</b><span>" + l + "</span>" + (s ? "<br><small>" + s + "</small>" : "") + "</div>"; }
         $("#dash-cards").innerHTML =
-          '<div class="ad-cards">' + card(p.total, "Total packages", p.published + " published · " + p.draft + " draft") + card(p.national, "National") + card(p.international, "International") + card(p.featured, "Featured") + "</div>" +
-          '<div class="ad-cards">' + card(q.total, "Total inquiries") + card(q.new, "New") + card(q.pending, "In progress") + card(q.processed, "Processed") + "</div>" +
+          '<div class="ad-cards">' + card(p.total, "Total packages", p.published + " published · " + p.draft + " draft") + card(p.national, "National") + card(p.international, "International") + card(dd.total, "Documents", dd.published + " published") + "</div>" +
+          '<div class="ad-cards">' + card(q.total, "Total inquiries") + card(q.new, "New") + card(q.pending, "In progress") + card(q.processed, "Processed") + (q.email_failed ? card(q.email_failed, "Email failed") : "") + "</div>" +
           '<div class="ad-panel"><div class="ad-panel__h">System status</div><div class="ad-panel__b">' +
             statusRow("Flight API", j.apis.flight.provider, j.apis.flight.configured) +
             statusRow("Visa data", j.apis.visa.provider, j.apis.visa.configured) +
@@ -369,6 +369,92 @@
     });
   }
 
+  /* ================= DOCUMENTS ================= */
+  function docSize(n){ n=+n||0; if(n<=0) return "—"; if(n<1048576) return Math.round(n/1024)+" KB"; return (n/1048576).toFixed(1)+" MB"; }
+  function docUrl(u){ return u && /^assets\//.test(u) ? "../"+u : (u||"#"); }
+  function pageDocuments() {
+    guard().then(function (me) { if (!me) return; var v = shell("documents");
+      v.innerHTML = '<div class="ad-head"><div><h1>Travel Documents</h1><p>Upload and manage the downloadable PDFs shown on the public Travel Documents page.</p></div><button class="ad-btn ad-btn--pri" id="doc-new">' + I.plus + 'New Document</button></div>' +
+        '<div class="ad-toolbar"><div class="ad-search">' + I.search + '<input id="doc-search" placeholder="Search title, category…"></div>' +
+        '<button class="ad-filter is-active" data-f="all">All</button><button class="ad-filter" data-f="published">Published</button><button class="ad-filter" data-f="draft">Draft</button><button class="ad-filter" data-f="unpublished">Unpublished</button></div>' +
+        '<div class="ad-panel"><div class="ad-table-wrap"><table class="ad-table"><thead><tr><th>Document</th><th>Category</th><th>Size</th><th>Status</th><th>Order</th><th>Actions</th></tr></thead><tbody id="doc-body"><tr><td colspan="6"><div class="ad-loading"><span class="ad-spin"></span> Loading…</div></td></tr></tbody></table></div></div>';
+      var ALL = [], curF = "all", term = "";
+      function load(){ return api("/api/admin/documents").then(function(j){ ALL = j.ok ? j.documents : []; draw(); }); }
+      function match(d){ if(term && ((d.title||"")+" "+(d.category||"")).toLowerCase().indexOf(term)<0) return false; if(curF==="all") return true; return d.status===curF; }
+      function draw(){
+        var rows = ALL.filter(match), body = $("#doc-body");
+        if(!rows.length){ body.innerHTML = '<tr><td colspan="6"><div class="ad-empty">No documents found. <a href="#" id="doc-empty-new">Add one</a>.</div></td></tr>'; var en=$("#doc-empty-new"); if(en) en.onclick=function(e){e.preventDefault();openDoc(0,load);}; return; }
+        body.innerHTML = rows.map(function(d){
+          return '<tr data-id="'+d.id+'">' +
+            '<td><div class="ad-table__title">'+esc(d.title)+'</div><div style="font-size:.78rem;color:var(--a-500)">'+esc(d.file_name||"")+'</div></td>' +
+            '<td>'+esc(d.category||"—")+'</td><td>'+docSize(d.file_size)+'</td>' +
+            '<td><span class="pill pill--'+esc(d.status)+'">'+esc(d.status)+'</span></td>' +
+            '<td>'+ (d.sort||0) +'</td>' +
+            '<td><div class="ad-row-actions"><a class="ad-ico-btn" href="'+esc(docUrl(d.file_url))+'" target="_blank" rel="noopener" title="View">'+I.eye+'</a><button class="ad-ico-btn" data-edit title="Edit">'+I.edit+'</button><button class="ad-ico-btn" data-del title="Delete">'+I.trash+'</button></div></td></tr>';
+        }).join("");
+        body.querySelectorAll("tr").forEach(function(tr){ var id=tr.getAttribute("data-id");
+          tr.querySelector("[data-edit]").onclick=function(){ openDoc(id, load); };
+          tr.querySelector("[data-del]").onclick=function(){ var d=findD(id); confirmDialog("Delete document?", 'Remove "'+d.title+'" from the website?').then(function(yes){ if(!yes) return; api("/api/admin/document?id="+id,{method:"DELETE"}).then(function(j){ if(j.ok){toast("Deleted","ok");load();} else toast("Failed","err"); }); }); };
+        });
+      }
+      function findD(id){ for(var i=0;i<ALL.length;i++) if(String(ALL[i].id)===String(id)) return ALL[i]; }
+      $("#doc-search").addEventListener("input", function(){ term=this.value.toLowerCase(); draw(); });
+      v.querySelectorAll(".ad-filter").forEach(function(b){ b.onclick=function(){ v.querySelectorAll(".ad-filter").forEach(function(x){x.classList.remove("is-active");}); b.classList.add("is-active"); curF=b.getAttribute("data-f"); draw(); }; });
+      $("#doc-new").onclick=function(){ openDoc(0, load); };
+      load();
+    });
+  }
+  function openDoc(id, reload) {
+    function build(d){
+      d = d || { title:"", description:"", category:"Pilgrimage Tours", file_url:"", file_name:"", file_size:0, status:"published", sort:0 };
+      var m = document.createElement("div"); m.className="ad-modal open";
+      var stOpts = ["published","draft","unpublished"].map(function(s){ return '<option value="'+s+'"'+(d.status===s?" selected":"")+">"+s+"</option>"; }).join("");
+      m.innerHTML = '<div class="ad-modal__bd"></div><div class="ad-modal__dlg"><button class="ad-modal__x">'+I.x+'</button><h3 style="font-size:1.25rem;color:var(--a-navy);margin-bottom:16px">'+(id?"Edit":"New")+' Document</h3>' +
+        '<div class="ad-form">' +
+          '<div class="ad-field"><label>Title *</label><input id="d-title" value="'+esc(d.title||"")+'"></div>' +
+          '<div class="ad-field"><label>Description</label><textarea id="d-desc">'+esc(d.description||"")+'</textarea></div>' +
+          '<div class="ad-grid3"><div class="ad-field"><label>Category</label><input id="d-cat" value="'+esc(d.category||"")+'" placeholder="e.g. Pilgrimage Tours"></div>' +
+            '<div class="ad-field"><label>Status</label><select id="d-status">'+stOpts+'</select></div>' +
+            '<div class="ad-field"><label>Sort order</label><input id="d-sort" type="number" min="0" value="'+(d.sort||0)+'"></div></div>' +
+          '<div class="ad-field"><label>PDF file (upload, ≤15 MB) or paste a URL below</label><input type="file" id="d-file" accept="application/pdf"><div class="ad-msg" id="d-upmsg"></div></div>' +
+          '<div class="ad-field"><label>File URL</label><input id="d-url" value="'+esc(d.file_url||"")+'" placeholder="assets/docs/... or https://..."></div>' +
+          '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px"><button class="ad-btn ad-btn--ghost" id="d-cancel">Cancel</button><button class="ad-btn ad-btn--pri" id="d-save">Save Document</button></div>' +
+          '<div class="ad-msg" id="d-msg" style="text-align:right"></div>' +
+        '</div></div>';
+      document.body.appendChild(m);
+      function close(){ m.remove(); }
+      m.querySelector(".ad-modal__x").onclick=close; m.querySelector(".ad-modal__bd").onclick=close; m.querySelector("#d-cancel").onclick=close;
+      var fileName = d.file_name || "", fileSize = d.file_size || 0;
+      m.querySelector("#d-file").addEventListener("change", function(){
+        var f=this.files[0]; if(!f) return; var msg=m.querySelector("#d-upmsg");
+        if(f.type!=="application/pdf"){ msg.textContent="Please choose a PDF file."; msg.className="ad-msg err show"; return; }
+        if(f.size>15*1048576){ msg.textContent="PDF must be 15 MB or smaller."; msg.className="ad-msg err show"; return; }
+        var rd=new FileReader();
+        rd.onload=function(){ msg.textContent="Uploading…"; msg.className="ad-msg show";
+          api("/api/admin/uploadpdf",{method:"POST",body:{filename:f.name,data:rd.result}}).then(function(j){
+            if(j.ok){ m.querySelector("#d-url").value=j.url; fileName=f.name; fileSize=j.size||f.size; if(!m.querySelector("#d-title").value) m.querySelector("#d-title").value=f.name.replace(/\.pdf$/i,""); msg.textContent="Uploaded ✓"; msg.className="ad-msg ok show"; }
+            else { msg.textContent=j.message||"Upload failed."; msg.className="ad-msg err show"; }
+          }).catch(function(){ msg.textContent="Upload failed."; msg.className="ad-msg err show"; });
+        };
+        rd.readAsDataURL(f);
+      });
+      m.querySelector("#d-save").onclick=function(){
+        var msg=m.querySelector("#d-msg"), btn=m.querySelector("#d-save");
+        var payload={ title:m.querySelector("#d-title").value, description:m.querySelector("#d-desc").value, category:m.querySelector("#d-cat").value, status:m.querySelector("#d-status").value, sort:m.querySelector("#d-sort").value, file_url:m.querySelector("#d-url").value, file_name:fileName, file_size:fileSize };
+        if(!payload.title.trim()){ msg.textContent="Title is required."; msg.className="ad-msg err show"; return; }
+        if(!payload.file_url.trim()){ msg.textContent="Upload a PDF or paste a file URL."; msg.className="ad-msg err show"; return; }
+        btn.classList.add("is-loading"); btn.disabled=true;
+        var req = id ? api("/api/admin/document?id="+id,{method:"PUT",body:payload}) : api("/api/admin/documents",{method:"POST",body:payload});
+        req.then(function(j){ btn.classList.remove("is-loading"); btn.disabled=false;
+          if(j.ok){ toast("Document saved","ok"); close(); reload&&reload(); }
+          else { msg.textContent=j.message||"Save failed."; msg.className="ad-msg err show"; }
+        }).catch(function(){ btn.classList.remove("is-loading"); btn.disabled=false; msg.textContent="Network error."; msg.className="ad-msg err show"; });
+      };
+    }
+    if(id) api("/api/admin/document?id="+id).then(function(j){ if(j.ok) build(j.document); else toast("Not found","err"); });
+    else build(null);
+  }
+
   /* ================= SETTINGS ================= */
   function pageSettings() {
     guard().then(function (me) { if (!me) return; var v = shell("settings");
@@ -413,6 +499,7 @@
     else if (p === "packages") pagePackages();
     else if (p === "package") pagePackage();
     else if (p === "inquiries") pageInquiries();
+    else if (p === "documents") pageDocuments();
     else if (p === "settings") pageSettings();
   });
 })();
