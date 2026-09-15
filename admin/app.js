@@ -7,7 +7,7 @@
    ========================================================================== */
 (function () {
   "use strict";
-  var BUILD = "admin-spa-2026-09-15";
+  var BUILD = "admin-spa-2026-09-15b";
 
   /* ---------- tiny helpers ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -50,16 +50,21 @@
     setTimeout(function () { t.style.opacity = "0"; t.style.transition = ".4s"; setTimeout(function () { t.remove(); }, 400); }, 3000);
   }
 
-  /* ---------- robust API: NEVER throws; always resolves to an object ---------- */
+  /* ---------- robust API: NEVER throws or hangs; always resolves to an object.
+     A 12s timeout guarantees a stalled/blocked request becomes a visible error
+     (never an endless spinner or blank). ---------- */
   function api(path, opts) {
     opts = opts || {};
-    var o = { method: opts.method || "GET", headers: { Accept: "application/json" }, credentials: "same-origin" };
+    var o = { method: opts.method || "GET", headers: { Accept: "application/json" }, credentials: "same-origin", cache: "no-store" };
     if (opts.body !== undefined) { o.headers["Content-Type"] = "application/json"; o.body = JSON.stringify(opts.body); }
+    var ctrl = null, timer = null;
+    try { ctrl = new AbortController(); o.signal = ctrl.signal; timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 12000); } catch (e) {}
+    function done(v) { if (timer) clearTimeout(timer); return v; }
     return fetch(path, o).then(function (r) {
-      return r.json().then(function (j) { j.__status = r.status; return j; })
-        .catch(function () { return { ok: false, __status: r.status, error: "bad_response", message: "The server sent an unexpected response." }; });
+      return r.json().then(function (j) { j.__status = r.status; return done(j); })
+        .catch(function () { return done({ ok: false, __status: r.status, error: "bad_response", message: "The server sent an unexpected response (HTTP " + r.status + ")." }); });
     }).catch(function () {
-      return { ok: false, __net: true, error: "network", message: "Couldn't reach the server. Check your connection — if you use Brave/ad-blockers, allow this site — then retry." };
+      return done({ ok: false, __net: true, error: "network", message: "Couldn't reach the server (request blocked, offline, or timed out). If you use Brave Shields or an ad-blocker, allow this site, then Retry." });
     });
   }
 
@@ -92,14 +97,22 @@
   function errorBlock(msg) {
     return '<div class="ad-state-error"><div class="ad-state-error__ic">' + I.refresh + '</div><p>' + esc(msg || "Something went wrong.") + '</p><button class="ad-btn ad-btn--pri" data-retry>' + I.refresh + ' Retry</button></div>';
   }
-  // renders into `host`, calls loader() -> promise<result>; on ok calls onData(result), else shows error+retry
+  // renders into `host`, calls loader() -> promise<result>; on ok calls onData(result), else shows error+retry.
+  // A watchdog guarantees the loading state is never permanent even if a promise never settles.
   function withData(host, loader, onData, loadLabel) {
     host.innerHTML = loadingBlock(loadLabel);
-    loader().then(function (j) {
-      if (j && j.ok) { onData(j); return; }
-      host.innerHTML = errorBlock(j && j.message ? j.message : "Could not load this section.");
+    var settled = false;
+    function fail(msg) {
+      if (settled) return; settled = true;
+      host.innerHTML = errorBlock(msg || "Could not load this section.");
       var rb = host.querySelector("[data-retry]"); if (rb) rb.onclick = function () { withData(host, loader, onData, loadLabel); };
-    });
+    }
+    var wd = setTimeout(function () { fail("This is taking longer than expected — the request may be blocked. Please Retry."); }, 15000);
+    loader().then(function (j) {
+      if (settled) return; clearTimeout(wd); settled = true;
+      if (j && j.ok) { try { onData(j); } catch (e) { fail("Loaded, but failed to render: " + (e && e.message || e)); } return; }
+      settled = false; clearTimeout(wd); fail(j && j.message ? j.message : "Could not load this section.");
+    }, function () { clearTimeout(wd); fail("Request failed. Please Retry."); });
   }
 
   /* ============================ SHELL ============================ */
@@ -590,6 +603,9 @@
     $("#fatal-retry").onclick = retryFn;
   }
   function boot() {
+    // Surface any unexpected error visibly instead of failing silently.
+    window.addEventListener("unhandledrejection", function (ev) { try { toast("Error: " + ((ev.reason && ev.reason.message) || ev.reason || "see console"), "err"); } catch (e) {} });
+    window.addEventListener("error", function (ev) { try { toast("Error: " + (ev.message || "see console"), "err"); } catch (e) {} });
     api("/api/admin/me").then(function (j) {
       if (j.__net) { fatal("Couldn't reach the server. Check your connection — if you use Brave Shields or an ad-blocker, allow this site — then retry.", boot); return; }
       if (!j.ok) { location.replace("login.html"); return; }
