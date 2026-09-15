@@ -8,9 +8,9 @@
   <link rel="icon" type="image/png" href="../assets/img/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=4">
+  <link rel="stylesheet" href="admin.css?v=5">
 </head>
-<body data-admin="login" class="ad-login">
+<body class="ad-login">
   <div class="ad-login__card">
     <img class="ad-login__logo" src="../assets/img/logo.png" alt="Vandana Travel Experts">
     <h1>Admin Login</h1>
@@ -22,6 +22,30 @@
       <div class="ad-msg"></div>
     </form>
   </div>
-  <script src="admin.js?v=4"></script>
+  <script>
+  (function () {
+    function api(path, opts) {
+      opts = opts || {};
+      var o = { method: opts.method || "GET", headers: { Accept: "application/json" }, credentials: "same-origin" };
+      if (opts.body !== undefined) { o.headers["Content-Type"] = "application/json"; o.body = JSON.stringify(opts.body); }
+      return fetch(path, o).then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+        .catch(function () { return { ok: false, __net: true, message: "Couldn't reach the server. If you use Brave Shields or an ad-blocker, allow this site, then retry." }; });
+    }
+    // already logged in? go straight to the panel
+    api("/api/admin/me").then(function (j) { if (j.ok) location.replace("index.html#/dashboard"); });
+    var f = document.getElementById("login-form");
+    var msg = f.querySelector(".ad-msg"), btn = f.querySelector('button[type=submit]');
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      btn.classList.add("is-loading"); btn.disabled = true; msg.className = "ad-msg"; msg.textContent = "";
+      api("/api/admin/login", { method: "POST", body: { email: document.getElementById("login-email").value, password: document.getElementById("login-pass").value } })
+        .then(function (j) {
+          if (j.ok) { location.replace("index.html#/dashboard"); return; }
+          msg.textContent = j.message || "Invalid email or password."; msg.className = "ad-msg err show";
+          btn.classList.remove("is-loading"); btn.disabled = false;
+        });
+    });
+  })();
+  </script>
 </body>
 </html>
