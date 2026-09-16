@@ -706,7 +706,10 @@
 
   /* ================= LIVE TRAVEL INFO (flights + visa) ================= */
   // Same-origin on Vercel; cross-origin to the Vercel API from other hosts (CORS-enabled).
-  var API_BASE = /(^|\.)vercel\.app$/.test(location.hostname) ? "" : "https://vandana-travel-experts.vercel.app";
+  // The site's APIs are served from the same origin as the deployment (Vercel or
+  // the custom domain), so use relative paths there. Only the static GitHub Pages
+  // mirror (no backend) needs to reach out to the Vercel deployment.
+  var API_BASE = /\.github\.io$/.test(location.hostname) ? "https://vandana-travel-experts.vercel.app" : "";
   var INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>';
   var flightService = { get: function (code) { return fetch(API_BASE + "/api/flight?flight=" + encodeURIComponent(code)).then(function (r) { return r.json(); }); } };
   var visaService = {

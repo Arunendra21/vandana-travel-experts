@@ -7,7 +7,7 @@
    ========================================================================== */
 (function () {
   "use strict";
-  var BUILD = "admin-spa-2026-09-16-rbac";
+  var BUILD = "admin-spa-2026-09-16-domain";
 
   /* ---------- tiny helpers ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -140,7 +140,7 @@
     document.body.classList.add("ad-body");
     var roleBadge = isSuper() ? '<span class="ad-role ad-role--super">' + I.shield + 'Super Admin</span>' : '<span class="ad-role">Admin</span>';
     document.body.innerHTML =
-      '<div class="ad-shell"><aside class="ad-side"><div class="ad-side__brand"><img src="../assets/img/logo.png" alt=""><div><b>Vandana</b><span>Admin Panel</span></div></div>' +
+      '<div class="ad-shell"><aside class="ad-side"><div class="ad-side__brand"><img src="/assets/img/logo.png" alt=""><div><b>Vandana</b><span>Admin Panel</span></div></div>' +
         '<nav class="ad-nav" id="ad-nav">' + navFor().map(function (n) { return '<a href="' + n[0] + '" data-nav="' + n[1] + '">' + n[2] + n[3] + '</a>'; }).join("") + '</nav>' +
         '<div class="ad-side__foot">' + roleBadge + '<div class="ad-side__user" id="ad-user">' + esc(ME ? (ME.name ? ME.name + " · " : "") + ME.email : "") + '</div><button class="ad-logout" id="ad-logout">' + I.out + 'Log out</button><div class="ad-build">build ' + esc(BUILD) + '</div></div>' +
       '</aside><main class="ad-main"><button class="ad-burger" id="ad-burger">' + I.menu + '</button><div id="ad-view"></div></main></div>';
@@ -276,8 +276,8 @@
     $all(".ad-filter", v).forEach(function (b) { b.onclick = function () { $all(".ad-filter", v).forEach(function (x) { x.classList.remove("is-active"); }); b.classList.add("is-active"); curF = b.getAttribute("data-f"); draw(); }; });
     reload();
   }
-  function rel(u) { return u && /^assets\//.test(u) ? "../" + u : (u || ""); }
-  function custUrl(rel) { return "../" + rel; }
+  function rel(u) { return u && /^assets\//.test(u) ? "/" + u : (u || ""); }
+  function custUrl(rel) { return "/" + rel; }
   function byId(list, id) { for (var i = 0; i < list.length; i++) if (String(list[i].id) === String(id)) return list[i]; }
 
   /* ---------- PACKAGE EDITOR ---------- */
@@ -464,7 +464,7 @@
     $all(".ad-filter", v).forEach(function (b) { b.onclick = function () { $all(".ad-filter", v).forEach(function (x) { x.classList.remove("is-active"); }); b.classList.add("is-active"); curF = b.getAttribute("data-f"); draw(); }; });
     reload();
   }
-  function docUrl(u) { return u && /^assets\//.test(u) ? "../" + u : (u || "#"); }
+  function docUrl(u) { return u && /^assets\//.test(u) ? "/" + u : (u || "#"); }
 
   /* ============================ INQUIRIES ============================ */
   function pageInquiries(params) {
@@ -774,7 +774,7 @@
   /* ============================ BOOT ============================ */
   function fatal(msg, retryFn) {
     document.body.className = "ad-fatal-body";
-    document.body.innerHTML = '<div class="ad-fatal"><img src="../assets/img/logo.png" alt=""><h2>Admin Panel</h2><p>' + esc(msg) + '</p><button class="ad-btn ad-btn--pri" id="fatal-retry">' + I.refresh + ' Retry</button></div>';
+    document.body.innerHTML = '<div class="ad-fatal"><img src="/assets/img/logo.png" alt=""><h2>Admin Panel</h2><p>' + esc(msg) + '</p><button class="ad-btn ad-btn--pri" id="fatal-retry">' + I.refresh + ' Retry</button></div>';
     $("#fatal-retry").onclick = retryFn;
   }
   function boot() {
