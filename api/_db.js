@@ -77,6 +77,15 @@ async function ensureSchema() {
     detail TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`;
+  await sql`CREATE TABLE IF NOT EXISTS media (
+    id SERIAL PRIMARY KEY,
+    kind TEXT NOT NULL DEFAULT 'image',
+    content_type TEXT NOT NULL,
+    data TEXT NOT NULL,
+    filename TEXT,
+    size INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`;
   await sql`CREATE TABLE IF NOT EXISTS documents (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,

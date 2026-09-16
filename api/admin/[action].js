@@ -387,28 +387,10 @@ async function doDocument(req, res, url) {
   return auth.json(res, 405, { ok: false, error: "method_not_allowed" });
 }
 
-/* ---------- PDF upload (Vercel Blob) ---------- */
-async function doUploadPdf(req, res) {
-  if (req.method !== "POST") return auth.json(res, 405, { ok: false, error: "method_not_allowed" });
-  var admin = await auth.requireAdmin(req);
-  if (!admin) return auth.json(res, 401, { ok: false, error: "unauthorized" });
-  if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return auth.json(res, 500, { ok: false, error: "no_blob", message: "File storage (Vercel Blob) is not configured." });
-  var body = await auth.readBody(req);
-  var mt = String(body.data || "").match(/^data:(application\/pdf);base64,(.+)$/i);
-  if (!mt) return auth.json(res, 400, { ok: false, error: "bad_data", message: "Please choose a valid PDF file." });
-  var buf; try { buf = Buffer.from(mt[2], "base64"); } catch (e) { return auth.json(res, 400, { ok: false, error: "bad_data" }); }
-  if (!buf.length) return auth.json(res, 400, { ok: false, error: "empty" });
-  if (buf.length > 15 * 1024 * 1024) return auth.json(res, 413, { ok: false, error: "too_large", message: "PDF must be 15 MB or smaller." });
-  if (!(buf.length > 4 && buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46)) return auth.json(res, 415, { ok: false, error: "not_pdf", message: "That file is not a valid PDF." });
-  var safe = String(body.filename || "document").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "document";
-  var name = "documents/" + Date.now() + "-" + crypto.randomBytes(5).toString("hex") + "-" + safe + ".pdf";
-  var out = await blob.put(name, buf, { access: "public", contentType: "application/pdf", addRandomSuffix: false });
-  await db.audit(admin.email, "pdf_upload", out.url);
-  return auth.json(res, 200, { ok: true, url: out.url, size: buf.length });
-}
-
-/* ---------- image upload (Vercel Blob) ---------- */
+/* ---------- media storage ----------
+   By default images/PDFs are stored in the DATABASE (free — no external object
+   store needed) and served by /api/media?id=NN. If a Vercel Blob token is
+   present, Blob is used instead. Either way the admin gets back a public URL. */
 var EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 function sniff(b) {
   if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
@@ -416,12 +398,45 @@ function sniff(b) {
   if (b.length > 12 && b.slice(0, 4).toString() === "RIFF" && b.slice(8, 12).toString() === "WEBP") return "image/webp";
   return null;
 }
+function baseUrl(req) { var host = req.headers.host || ""; return host ? "https://" + host : ""; }
+async function storeMedia(req, res, admin, kind, type, buf, ext) {
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    var name = kind + "s/" + Date.now() + "-" + crypto.randomBytes(6).toString("hex") + "." + ext;
+    var out = await blob.put(name, buf, { access: "public", contentType: type, addRandomSuffix: false });
+    await db.audit(admin.email, kind + "_upload", out.url);
+    return auth.json(res, 200, { ok: true, url: out.url, size: buf.length });
+  }
+  // Free path: store in the database.
+  await db.sql`CREATE TABLE IF NOT EXISTS media (id SERIAL PRIMARY KEY, kind TEXT NOT NULL DEFAULT 'image', content_type TEXT NOT NULL, data TEXT NOT NULL, filename TEXT, size INTEGER DEFAULT 0, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
+  var ins = await db.sql`INSERT INTO media (kind, content_type, data, filename, size) VALUES (${kind}, ${type}, ${buf.toString("base64")}, ${kind + "." + ext}, ${buf.length}) RETURNING id`;
+  var url = baseUrl(req) + "/api/media?id=" + ins.rows[0].id;
+  await db.audit(admin.email, kind + "_upload", "media#" + ins.rows[0].id + " (" + buf.length + "b)");
+  return auth.json(res, 200, { ok: true, url: url, size: buf.length });
+}
+
+/* ---------- PDF upload ---------- */
+async function doUploadPdf(req, res) {
+  if (req.method !== "POST") return auth.json(res, 405, { ok: false, error: "method_not_allowed" });
+  var admin = await auth.requireAdmin(req);
+  if (!admin) return auth.json(res, 401, { ok: false, error: "unauthorized" });
+  if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
+  var body = await auth.readBody(req);
+  var mt = String(body.data || "").match(/^data:(application\/pdf);base64,(.+)$/i);
+  if (!mt) return auth.json(res, 400, { ok: false, error: "bad_data", message: "Please choose a valid PDF file." });
+  var buf; try { buf = Buffer.from(mt[2], "base64"); } catch (e) { return auth.json(res, 400, { ok: false, error: "bad_data" }); }
+  if (!buf.length) return auth.json(res, 400, { ok: false, error: "empty" });
+  var maxMB = process.env.BLOB_READ_WRITE_TOKEN ? 15 : 4;
+  if (buf.length > maxMB * 1024 * 1024) return auth.json(res, 413, { ok: false, error: "too_large", message: "PDF must be " + maxMB + " MB or smaller." });
+  if (!(buf.length > 4 && buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46)) return auth.json(res, 415, { ok: false, error: "not_pdf", message: "That file is not a valid PDF." });
+  return await storeMedia(req, res, admin, "pdf", "application/pdf", buf, "pdf");
+}
+
+/* ---------- image upload ---------- */
 async function doUpload(req, res) {
   if (req.method !== "POST") return auth.json(res, 405, { ok: false, error: "method_not_allowed" });
   var admin = await auth.requireAdmin(req);
   if (!admin) return auth.json(res, 401, { ok: false, error: "unauthorized" });
   if (!auth.sameOrigin(req)) return auth.json(res, 403, { ok: false, error: "forbidden" });
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return auth.json(res, 500, { ok: false, error: "no_blob", message: "Image storage (Vercel Blob) is not configured." });
   var body = await auth.readBody(req);
   var mt = String(body.data || "").match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
   if (!mt) return auth.json(res, 400, { ok: false, error: "bad_data", message: "Please choose a valid image file." });
@@ -431,10 +446,7 @@ async function doUpload(req, res) {
   if (!buf.length) return auth.json(res, 400, { ok: false, error: "empty" });
   if (buf.length > 4 * 1024 * 1024) return auth.json(res, 413, { ok: false, error: "too_large", message: "Image must be 4 MB or smaller." });
   if (sniff(buf) !== type) return auth.json(res, 415, { ok: false, error: "not_image", message: "That file is not a valid image." });
-  var name = "packages/" + Date.now() + "-" + crypto.randomBytes(6).toString("hex") + "." + EXT[type];
-  var out = await blob.put(name, buf, { access: "public", contentType: type, addRandomSuffix: false });
-  await db.audit(admin.email, "image_upload", out.url);
-  return auth.json(res, 200, { ok: true, url: out.url });
+  return await storeMedia(req, res, admin, "image", type, buf, EXT[type]);
 }
 
 /* ---------- audit log ---------- */
