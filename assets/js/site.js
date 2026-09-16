@@ -12,8 +12,6 @@
   var PHONE2 = "+918779385247";
   var WA = "919004222290";
   var EMAIL = "vandanatravelexperts@gmail.com";
-  // "Join Our Team" careers Google Form. Paste the form's share link here.
-  var JOIN_FORM = "";
   /* Free, UNLIMITED email delivery for a static site via FormSubmit — no monthly
      cap, no backend, no API keys. Contact/booking forms post to FormSubmit, which
      shows its own free captcha (blocks bots) and then redirects to thankyou.html.
@@ -77,7 +75,7 @@
     var header =
       '<div class="container"><nav class="nav">' +
         '<a class="nav__logo" href="index.html" aria-label="Vandana Travel Experts home">' +
-          '<img src="assets/img/logo.png?v=2" alt="Vandana Travel Experts logo">' +
+          '<img src="assets/img/logo.png?v=3" alt="Vandana Travel Experts logo">' +
           '<span class="nav__logo-text"><span class="ln"><b>Vandana</b> Travel Experts</span></span>' +
         "</a>" +
         '<button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false"><span></span></button>' +
@@ -133,7 +131,7 @@
       '<div class="container">' +
         '<div class="footer__top">' +
           '<div class="footer__brand">' +
-            '<img src="assets/img/logo.png?v=2" alt="Vandana Travel Experts">' +
+            '<img src="assets/img/logo.png?v=3" alt="Vandana Travel Experts">' +
             "<p>A trusted travel management company with 25+ years of expertise — customised holidays, corporate travel and MICE events, crafted with precision and care.</p>" +
             '<ul class="footer__contact">' +
               "<li>" + I.phone + '<a href="tel:' + PHONE + '">' + PHONE + " &nbsp;|&nbsp; " + PHONE2 + "</a></li>" +
@@ -166,7 +164,7 @@
         '<div class="footer__bottom">' +
           "<span>© " + yr + " Vandana Travel Experts. All rights reserved.</span>" +
           '<ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="cancellation.html">Cancellation &amp; Refund Policy</a></li>' +
-            '<li><a href="' + (JOIN_FORM || "contact.html") + '"' + (JOIN_FORM ? ' target="_blank" rel="noopener"' : "") + ">Join Our Team</a></li></ul>" +
+            '<li><a href="join-us.html">Join Our Team</a></li></ul>' +
         "</div>" +
       "</div>";
     var el = document.getElementById("site-footer");
@@ -508,6 +506,37 @@
       return;
     }
 
+    if (type === "careers") {
+      // Job application → stored in the DB + emailed to the team (source "careers").
+      f.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var msg = f.querySelector(".form-msg");
+        if (f.querySelector('[name="_honey"]').value) { inquirySuccess(f, "Application received!", "Thank you for applying."); return; }
+        if (Date.now() - (f.__loadedAt || 0) < 2500) { if (msg) { msg.textContent = "Please take a moment to complete the form."; msg.className = "form-msg err"; } f.__loadedAt = Date.now() - 2500; return; }
+        if (!validateRequired(f, msg)) return;
+        var btn = f.querySelector('button[type="submit"]'); setBtn(btn, true);
+        if (msg) { msg.textContent = "Submitting your application…"; msg.className = "form-msg"; }
+        var position = val(f, "position");
+        var details = "JOB APPLICATION — Join Our Team\n" +
+          "Position: " + (position || "—") + "\n" +
+          "Experience: " + (val(f, "experience") || "—") + "\n" +
+          "Current city: " + (val(f, "location") || "—") + "\n" +
+          "Resume / LinkedIn: " + (val(f, "linkedin") || "—") + "\n\n" +
+          "About the applicant:\n" + (val(f, "message") || "—");
+        var payload = {
+          name: val(f, "name"), email: val(f, "email"), phone: val(f, "phone"),
+          package: "Join Our Team — " + (position || "Application"),
+          message: details, source: "careers",
+          _honey: (f.querySelector('[name="_honey"]') || {}).value || ""
+        };
+        fetch(API_BASE + "/api/inquiry", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload) })
+          .then(function (r) { return r.json().catch(function () { return {}; }); })
+          .then(function (j) { if (j && j.ok) inquirySuccess(f, "Application received!", "Thank you for your interest in joining Vandana Travel Experts. Our team will review your application and reach out if there's a good fit."); else formFailed(f, msg, btn, j && j.message); })
+          .catch(function () { formFailed(f, msg, btn); });
+      });
+      return;
+    }
+
     // contact & booking → store securely in the DB + email the team via /api/inquiry.
     // Honeypot + time-trap + server-side rate-limit guard against spam.
     f.addEventListener("submit", function (e) {
@@ -534,10 +563,10 @@
     if (msg) { msg.innerHTML = (why ? esc(why) + " " : "We couldn't send your enquiry right now. ") + 'Please email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a> or WhatsApp ' + PHONE + "."; msg.className = "form-msg err"; }
     setBtn(btn, false);
   }
-  function inquirySuccess(f) {
+  function inquirySuccess(f, title, text) {
     var host = f.parentNode;
     var s = document.createElement("div"); s.className = "form-success";
-    s.innerHTML = '<div class="form-success__tick">' + I.check + "</div><h3>Thank you!</h3><p>Your enquiry has reached the Vandana Travel Experts team. We'll get back to you within 24 hours.</p>" +
+    s.innerHTML = '<div class="form-success__tick">' + I.check + "</div><h3>" + esc(title || "Thank you!") + "</h3><p>" + esc(text || "Your enquiry has reached the Vandana Travel Experts team. We'll get back to you within 24 hours.") + "</p>" +
       '<div class="form-success__cta"><a class="btn btn--outline btn--sm" href="https://wa.me/' + WA + '">Message us on WhatsApp</a></div>';
     f.style.display = "none"; host.appendChild(s);
   }

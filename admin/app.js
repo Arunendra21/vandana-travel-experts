@@ -7,7 +7,7 @@
    ========================================================================== */
 (function () {
   "use strict";
-  var BUILD = "admin-spa-2026-09-16-edits";
+  var BUILD = "admin-spa-2026-09-16-join";
 
   /* ---------- tiny helpers ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -142,7 +142,7 @@
     document.body.classList.add("ad-body");
     var roleBadge = isSuper() ? '<span class="ad-role ad-role--super">' + I.shield + 'Super Admin</span>' : '<span class="ad-role">Admin</span>';
     document.body.innerHTML =
-      '<div class="ad-shell"><aside class="ad-side"><div class="ad-side__brand"><img src="/assets/img/logo.png?v=2" alt=""><div><b>Vandana</b><span>Admin Panel</span></div></div>' +
+      '<div class="ad-shell"><aside class="ad-side"><div class="ad-side__brand"><img src="/assets/img/logo.png?v=3" alt=""><div><b>Vandana</b><span>Admin Panel</span></div></div>' +
         '<nav class="ad-nav" id="ad-nav">' + navFor().map(function (n) { return '<a href="' + n[0] + '" data-nav="' + n[1] + '">' + n[2] + n[3] + '</a>'; }).join("") + '</nav>' +
         '<div class="ad-side__foot">' + roleBadge + '<div class="ad-side__user" id="ad-user">' + esc(ME ? (ME.name ? ME.name + " · " : "") + ME.email : "") + '</div><button class="ad-logout" id="ad-logout">' + I.out + 'Log out</button><div class="ad-build">build ' + esc(BUILD) + '</div></div>' +
       '</aside><main class="ad-main"><button class="ad-burger" id="ad-burger">' + I.menu + '</button><div id="ad-view"></div></main></div>';
@@ -776,7 +776,7 @@
   /* ============================ BOOT ============================ */
   function fatal(msg, retryFn) {
     document.body.className = "ad-fatal-body";
-    document.body.innerHTML = '<div class="ad-fatal"><img src="/assets/img/logo.png?v=2" alt=""><h2>Admin Panel</h2><p>' + esc(msg) + '</p><button class="ad-btn ad-btn--pri" id="fatal-retry">' + I.refresh + ' Retry</button></div>';
+    document.body.innerHTML = '<div class="ad-fatal"><img src="/assets/img/logo.png?v=3" alt=""><h2>Admin Panel</h2><p>' + esc(msg) + '</p><button class="ad-btn ad-btn--pri" id="fatal-retry">' + I.refresh + ' Retry</button></div>';
     $("#fatal-retry").onclick = retryFn;
   }
   function boot() {

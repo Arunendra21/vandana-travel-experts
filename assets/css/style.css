@@ -1264,3 +1264,10 @@ body.modal-open { overflow: hidden; }
   .doc-card__actions{width:100%}
   .doc-card__actions .btn{flex:1;justify-content:center}
 }
+
+/* Join Us / careers perks list */
+.join-perks{list-style:none;display:grid;gap:14px;margin:6px 0 4px}
+.join-perks li{display:flex;gap:12px;align-items:flex-start}
+.join-perks__ic{font-size:1.35rem;line-height:1.2;flex:0 0 auto}
+.join-perks li b{display:block;color:var(--navy,#0f172a);font-size:.98rem;margin-bottom:1px}
+.join-perks li span{color:var(--slate,#64748b);font-size:.9rem;line-height:1.5}
