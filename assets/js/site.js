@@ -84,9 +84,9 @@
           '<li class="nav__item has-mega"><a class="nav__link' + act("packages") + '" href="packages.html">Packages ' + I.caret + '</a>' + buildPackagesMega() + "</li>" +
           '<li class="nav__item"><a class="nav__link' + act("corporate") + '" href="corporate-travel.html">Corporate Travel</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("mice") + '" href="mice.html">MICE</a></li>' +
-          '<li class="nav__item"><a class="nav__link' + act("about") + '" href="about.html">About</a></li>' +
-          '<li class="nav__item"><a class="nav__link' + act("visa") + '" href="visa.html">Visa</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("flights") + '" href="flights.html">Flights</a></li>' +
+          '<li class="nav__item"><a class="nav__link' + act("visa") + '" href="visa.html">Visa</a></li>' +
+          '<li class="nav__item"><a class="nav__link' + act("about") + '" href="about.html">About</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("contact") + '" href="contact.html">Contact</a></li>' +
           '<li class="nav__cta"><a class="btn btn--primary btn--sm" href="contact.html">Get a Quote ' + I.arrow + "</a></li>" +
         "</ul>" +
