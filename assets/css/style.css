@@ -1330,3 +1330,11 @@ body.modal-open { overflow: hidden; }
 .cta-band--center h2 .g{color:var(--gold,#e6a93b)}
 .cta-band__tags{color:#bcd0ea;font-weight:600;letter-spacing:.02em;font-size:.95rem;margin:0 auto 26px}
 .cta-band--center .btn{margin:0 auto}
+
+/* MICE — destinations we manage */
+.mice-dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:14px}
+.mice-dest{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px 24px;box-shadow:var(--shadow-sm);border-top:4px solid var(--gold,#e6a93b);transition:transform .35s var(--ease),box-shadow .35s}
+.mice-dest:hover{transform:translateY(-6px);box-shadow:var(--shadow-blue)}
+.mice-dest h3{font-family:var(--ff-head);font-weight:700;font-size:1.12rem;color:var(--navy);margin-bottom:10px;line-height:1.3}
+.mice-dest p{color:var(--slate-500);font-size:.95rem;line-height:1.6}
+@media (max-width:860px){.mice-dest-grid{grid-template-columns:1fr}}
