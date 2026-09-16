@@ -416,7 +416,7 @@
         "</form>" +
       "</div>";
     document.body.appendChild(m);
-    m.addEventListener("click", function (e) { if (e.target.hasAttribute("data-close")) closeBooking(); });
+    m.addEventListener("click", function (e) { if (e.target.closest("[data-close]")) closeBooking(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeBooking(); });
     initForm(m.querySelector("form"));
   }
