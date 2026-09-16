@@ -12,6 +12,8 @@
   var PHONE2 = "+918779385247";
   var WA = "919004222290";
   var EMAIL = "vandanatravelexperts@gmail.com";
+  // "Join Our Team" careers Google Form. Paste the form's share link here.
+  var JOIN_FORM = "";
   /* Free, UNLIMITED email delivery for a static site via FormSubmit — no monthly
      cap, no backend, no API keys. Contact/booking forms post to FormSubmit, which
      shows its own free captcha (blocks bots) and then redirects to thankyou.html.
@@ -75,7 +77,7 @@
     var header =
       '<div class="container"><nav class="nav">' +
         '<a class="nav__logo" href="index.html" aria-label="Vandana Travel Experts home">' +
-          '<img src="assets/img/logo.png" alt="Vandana Travel Experts logo">' +
+          '<img src="assets/img/logo.png?v=2" alt="Vandana Travel Experts logo">' +
           '<span class="nav__logo-text"><span class="ln"><b>Vandana</b> Travel Experts</span></span>' +
         "</a>" +
         '<button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false"><span></span></button>' +
@@ -131,7 +133,7 @@
       '<div class="container">' +
         '<div class="footer__top">' +
           '<div class="footer__brand">' +
-            '<img src="assets/img/logo.png" alt="Vandana Travel Experts">' +
+            '<img src="assets/img/logo.png?v=2" alt="Vandana Travel Experts">' +
             "<p>A trusted travel management company with 25+ years of expertise — customised holidays, corporate travel and MICE events, crafted with precision and care.</p>" +
             '<ul class="footer__contact">' +
               "<li>" + I.phone + '<a href="tel:' + PHONE + '">' + PHONE + " &nbsp;|&nbsp; " + PHONE2 + "</a></li>" +
@@ -163,7 +165,8 @@
         '<div class="footer__note">Promoted by ex-employees of Sahara Airlines, Kingfisher Airlines, HDFC &amp; leading DMCs.</div>' +
         '<div class="footer__bottom">' +
           "<span>© " + yr + " Vandana Travel Experts. All rights reserved.</span>" +
-          '<ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="cancellation.html">Cancellation &amp; Refund Policy</a></li></ul>' +
+          '<ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="cancellation.html">Cancellation &amp; Refund Policy</a></li>' +
+            '<li><a href="' + (JOIN_FORM || "contact.html") + '"' + (JOIN_FORM ? ' target="_blank" rel="noopener"' : "") + ">Join Our Team</a></li></ul>" +
         "</div>" +
       "</div>";
     var el = document.getElementById("site-footer");
@@ -182,6 +185,8 @@
   }
 
   /* ================= PACKAGE CARD ================= */
+  // Display label: keep the stored category value "National", but show "Domestic".
+  function catLabel(c) { return c === "National" ? "Domestic" : (c || ""); }
   function packageCard(p) {
     var chips = (p.highlights || []).slice(0, 3).map(function (h) { return "<li>" + esc(h) + "</li>"; }).join("");
     var catClass = p.category === "National" ? "is-nat" : "is-intl";
@@ -189,7 +194,7 @@
     return '<article class="pkg-card reveal" data-cat="' + p.category + '" data-name="' + esc((p.title + " " + p.country + " " + p.region).toLowerCase()) + '">' +
       '<a class="pkg-card__media" href="package.html?id=' + p.id + '" aria-label="' + esc(p.title) + '">' +
         '<img src="' + p.image + '" alt="' + esc(p.title) + ' — ' + esc(loc) + '" loading="lazy">' +
-        '<span class="pkg-card__badge ' + catClass + '">' + I.globe + esc(p.category) + "</span>" +
+        '<span class="pkg-card__badge ' + catClass + '">' + I.globe + esc(catLabel(p.category)) + "</span>" +
         '<span class="pkg-card__dur">' + I.clock + esc(p.duration.label) + "</span>" +
       "</a>" +
       '<div class="pkg-card__body">' +
@@ -278,6 +283,9 @@
       });
     });
     var search = document.getElementById("pkgs-search");
+    // search term from URL (?q=...) — e.g. from the homepage search box
+    var urlQ = qs("q");
+    if (urlQ) { term = urlQ.trim().toLowerCase(); if (search) search.value = urlQ; }
     if (search) search.addEventListener("input", function () { term = search.value.trim().toLowerCase(); apply(); });
     apply();
   }
@@ -306,7 +314,7 @@
       '<section class="pkg-hero" style="background-image:linear-gradient(120deg,rgba(3,40,78,.82),rgba(4,107,210,.5)),url(\'' + p.image + '\')">' +
         '<div class="container"><div class="pkg-hero__inner reveal">' +
           '<div class="breadcrumb"><a href="index.html">Home</a>' + I.chevR + '<a href="packages.html">Packages</a>' + I.chevR + "<span>" + esc(p.title) + "</span></div>" +
-          '<span class="pkg-hero__badge ' + catClass + '">' + I.globe + esc(p.category) + " Tour</span>" +
+          '<span class="pkg-hero__badge ' + catClass + '">' + I.globe + esc(catLabel(p.category)) + " Tour</span>" +
           "<h1>" + esc(p.title) + "</h1>" +
           '<div class="pkg-hero__meta"><span>' + I.pin + esc(loc) + "</span><span>" + I.clock + esc(p.duration.label) + "</span><span>" + I.tag + "Price on request</span></div>" +
         "</div></div>" +
@@ -327,7 +335,7 @@
           '<ul class="pkg-booking-card__facts">' +
             "<li>" + I.globe + "<span>Destination</span><b>" + esc(loc) + "</b></li>" +
             "<li>" + I.clock + "<span>Duration</span><b>" + esc(p.duration.label) + "</b></li>" +
-            "<li>" + I.tag + "<span>Category</span><b>" + esc(p.category) + " Tour</b></li>" +
+            "<li>" + I.tag + "<span>Category</span><b>" + esc(catLabel(p.category)) + " Tour</b></li>" +
             "<li>" + I.calendar + "<span>Days</span><b>" + p.itinerary.length + " days planned</b></li>" +
           "</ul>" +
           '<button class="btn btn--primary" data-book="' + esc(p.title) + '" style="width:100%">Book This Package ' + I.arrow + "</button>" +
@@ -390,7 +398,7 @@
   /* ================= BOOKING MODAL ================= */
   function buildBookingModal() {
     if (document.getElementById("book-modal")) return;
-    var opts = PKGS.map(function (p) { return '<option value="' + esc(p.title) + '">' + esc(p.title) + " (" + esc(p.category) + ")</option>"; }).join("");
+    var opts = PKGS.map(function (p) { return '<option value="' + esc(p.title) + '">' + esc(p.title) + " (" + esc(catLabel(p.category)) + ")</option>"; }).join("");
     var m = document.createElement("div");
     m.id = "book-modal"; m.className = "modal"; m.setAttribute("aria-hidden", "true");
     m.innerHTML =
@@ -492,7 +500,8 @@
         if (f.querySelector('[name="_honey"]').value) { subscribed(f, msg); return; }
         if (!validateRequired(f, msg)) return;
         var btn = f.querySelector('button[type="submit"]'); setBtn(btn, true);
-        fetch(API_BASE + "/api/inquiry", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ name: "Newsletter subscriber", email: val(f, "email") || val(f, "EMAIL"), message: "Newsletter subscription request.", source: "newsletter" }) })
+        var subEmail = val(f, "email") || val(f, "EMAIL");
+        fetch(API_BASE + "/api/inquiry", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ name: "Newsletter Subscriber", email: subEmail, package: "Newsletter Subscription", message: "This person has subscribed to the Vandana Travel Experts newsletter (" + subEmail + "). Please add them to your mailing list.", source: "newsletter" }) })
           .then(function () { subscribed(f, msg); })
           .catch(function () { subscribed(f, msg); });
       });

@@ -7,12 +7,14 @@
    ========================================================================== */
 (function () {
   "use strict";
-  var BUILD = "admin-spa-2026-09-16-domain";
+  var BUILD = "admin-spa-2026-09-16-edits";
 
   /* ---------- tiny helpers ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
   function $all(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  // Category stored value stays "National"; shown to users as "Domestic".
+  function catLabel(c) { return c === "National" ? "Domestic" : (c || ""); }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function fmtDate(iso) { if (!iso) return "—"; var d = new Date(iso); return isNaN(d) ? "—" : d.toLocaleString([], { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
   function fmtSize(n) { n = +n || 0; if (n <= 0) return "—"; if (n < 1048576) return Math.round(n / 1024) + " KB"; return (n / 1048576).toFixed(1) + " MB"; }
@@ -140,7 +142,7 @@
     document.body.classList.add("ad-body");
     var roleBadge = isSuper() ? '<span class="ad-role ad-role--super">' + I.shield + 'Super Admin</span>' : '<span class="ad-role">Admin</span>';
     document.body.innerHTML =
-      '<div class="ad-shell"><aside class="ad-side"><div class="ad-side__brand"><img src="/assets/img/logo.png" alt=""><div><b>Vandana</b><span>Admin Panel</span></div></div>' +
+      '<div class="ad-shell"><aside class="ad-side"><div class="ad-side__brand"><img src="/assets/img/logo.png?v=2" alt=""><div><b>Vandana</b><span>Admin Panel</span></div></div>' +
         '<nav class="ad-nav" id="ad-nav">' + navFor().map(function (n) { return '<a href="' + n[0] + '" data-nav="' + n[1] + '">' + n[2] + n[3] + '</a>'; }).join("") + '</nav>' +
         '<div class="ad-side__foot">' + roleBadge + '<div class="ad-side__user" id="ad-user">' + esc(ME ? (ME.name ? ME.name + " · " : "") + ME.email : "") + '</div><button class="ad-logout" id="ad-logout">' + I.out + 'Log out</button><div class="ad-build">build ' + esc(BUILD) + '</div></div>' +
       '</aside><main class="ad-main"><button class="ad-burger" id="ad-burger">' + I.menu + '</button><div id="ad-view"></div></main></div>';
@@ -172,7 +174,7 @@
       host.innerHTML =
         '<div class="ad-cards">' +
           card(p.total, "Total packages", (p.published || 0) + " published · " + (p.draft || 0) + " draft", "#/packages") +
-          card(p.national, "National", null, "#/packages?f=National") +
+          card(p.national, "Domestic", null, "#/packages?f=National") +
           card(p.international, "International", null, "#/packages?f=International") +
           card(p.featured, "Featured", null, "#/packages?f=featured") +
         '</div>' +
@@ -212,7 +214,7 @@
     v.innerHTML = head("Packages", "Create, edit, publish, feature and reorder tour packages.",
       '<a class="ad-btn ad-btn--pri" href="#/packages/new">' + I.plus + 'Add Package</a>') +
       '<div class="ad-toolbar"><div class="ad-search">' + I.search + '<input id="pk-search" placeholder="Search name, country, region…"></div>' +
-      '<button class="ad-filter" data-f="all">All</button><button class="ad-filter" data-f="National">National</button><button class="ad-filter" data-f="International">International</button>' +
+      '<button class="ad-filter" data-f="all">All</button><button class="ad-filter" data-f="National">Domestic</button><button class="ad-filter" data-f="International">International</button>' +
       '<button class="ad-filter" data-f="published">Published</button><button class="ad-filter" data-f="draft">Draft</button><button class="ad-filter" data-f="featured">Featured</button></div>' +
       '<div class="ad-panel"><div id="pk-host"></div></div>';
     var host = $("#pk-host");
@@ -232,7 +234,7 @@
           return '<tr data-id="' + p.id + '">' +
             '<td><img class="ad-table__thumb" src="' + esc(rel(p.image)) + '" alt="" onerror="this.style.visibility=\'hidden\'"></td>' +
             '<td><div class="ad-table__title">' + esc(p.title) + '</div><div class="ad-table__sub">' + esc(p.country || "") + (p.region ? " · " + esc(p.region) : "") + '</div></td>' +
-            '<td><span class="pill pill--' + (p.category === "National" ? "nat" : "intl") + '">' + esc(p.category) + '</span></td>' +
+            '<td><span class="pill pill--' + (p.category === "National" ? "nat" : "intl") + '">' + esc(catLabel(p.category)) + '</span></td>' +
             '<td>' + (p.nights || 0) + 'N · ' + (p.days || 0) + 'D</td>' +
             '<td><span class="pill pill--' + esc(p.status) + '">' + esc(p.status) + '</span></td>' +
             '<td><button class="ad-ico-btn" data-feat title="Toggle featured"><span class="' + (p.featured ? "star" : "star--off") + '">' + I.star + '</span></button></td>' +
@@ -296,7 +298,7 @@
     host.innerHTML =
       '<div class="ad-panel"><div class="ad-panel__h">Basic information</div><div class="ad-panel__b"><div class="ad-form">' +
         '<div class="ad-grid2"><div class="ad-field"><label>Package name *</label><input id="f-title" value="' + esc(pkg.title || "") + '"></div>' +
-        '<div class="ad-field"><label>Category *</label><select id="f-category"><option value="International"' + sel(pkg.category, "International") + '>International</option><option value="National"' + sel(pkg.category, "National") + '>National (India)</option></select></div></div>' +
+        '<div class="ad-field"><label>Category *</label><select id="f-category"><option value="International"' + sel(pkg.category, "International") + '>International</option><option value="National"' + sel(pkg.category, "National") + '>Domestic (India)</option></select></div></div>' +
         '<div class="ad-grid3"><div class="ad-field"><label>Country</label><input id="f-country" value="' + esc(pkg.country || "") + '"></div><div class="ad-field"><label>Region / cities</label><input id="f-region" value="' + esc(pkg.region || "") + '"></div><div class="ad-field"><label>Price (optional)</label><input id="f-price" value="' + esc(pkg.price || "") + '" placeholder="e.g. 85,000 or blank = On request"></div></div>' +
         '<div class="ad-grid3"><div class="ad-field"><label>Nights</label><input id="f-nights" type="number" min="0" value="' + (pkg.nights || 0) + '"></div><div class="ad-field"><label>Days</label><input id="f-days" type="number" min="0" value="' + (pkg.days || 0) + '"></div><div class="ad-field"><label>Sort order</label><input id="f-sort" type="number" min="0" value="' + (pkg.sort || 0) + '"></div></div>' +
         '<div class="ad-field"><label>Short summary</label><textarea id="f-summary">' + esc(pkg.summary || "") + '</textarea></div>' +
@@ -774,7 +776,7 @@
   /* ============================ BOOT ============================ */
   function fatal(msg, retryFn) {
     document.body.className = "ad-fatal-body";
-    document.body.innerHTML = '<div class="ad-fatal"><img src="/assets/img/logo.png" alt=""><h2>Admin Panel</h2><p>' + esc(msg) + '</p><button class="ad-btn ad-btn--pri" id="fatal-retry">' + I.refresh + ' Retry</button></div>';
+    document.body.innerHTML = '<div class="ad-fatal"><img src="/assets/img/logo.png?v=2" alt=""><h2>Admin Panel</h2><p>' + esc(msg) + '</p><button class="ad-btn ad-btn--pri" id="fatal-retry">' + I.refresh + ' Retry</button></div>';
     $("#fatal-retry").onclick = retryFn;
   }
   function boot() {

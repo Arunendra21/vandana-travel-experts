@@ -19,18 +19,18 @@
   <meta name="twitter:title" content="Vandana Travel Experts — Explore India & Beyond">
   <meta name="twitter:description" content="Vandana Travel Experts — trusted travel management company with 25+ years of experience. Customized domestic & international tour packages, visa assistance, corporate travel and MICE events.">
   <meta name="twitter:image" content="https://travelvandana.com/assets/img/hero-kashmir.jpg">
-  <link rel="icon" type="image/png" href="assets/img/logo.png">
+  <link rel="icon" type="image/png" href="assets/img/logo.png?v=2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=6">
+  <link rel="stylesheet" href="assets/css/style.css?v=7">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
     "name": "Vandana Travel Experts",
     "url": "https://travelvandana.com/",
-    "logo": "https://travelvandana.com/assets/img/logo.png",
+    "logo": "https://travelvandana.com/assets/img/logo.png?v=2",
     "image": "https://travelvandana.com/assets/img/hero-kashmir.jpg",
     "description": "Trusted travel management company with 25+ years of experience. Customized domestic and international tour packages, visa assistance, corporate travel and MICE events.",
     "slogan": "We Keep it Simple",
@@ -57,7 +57,7 @@
 <body data-page="home">
   <div id="preloader" class="preloader" aria-hidden="true">
     <div class="preloader__box">
-      <img class="preloader__logo" src="assets/img/logo.png" alt="Vandana Travel Experts">
+      <img class="preloader__logo" src="assets/img/logo.png?v=2" alt="Vandana Travel Experts">
       <div class="preloader__route"><span class="preloader__plane"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span></div>
       <div class="preloader__bar"><i></i></div>
       <div class="preloader__tag">We Keep it Simple</div>
@@ -83,7 +83,7 @@
           <a class="btn btn--gold" href="#international">Explore Packages</a>
           <a class="btn btn--ghost" href="contact.html">Plan My Trip</a>
         </div>
-        <form class="hero__search" role="search" onsubmit="location.href='contact.html';return false;">
+        <form class="hero__search" role="search" onsubmit="var q=this.querySelector('input').value.trim();location.href='packages.html'+(q?('?q='+encodeURIComponent(q)):'');return false;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input type="search" placeholder="Where do you want to go? e.g. Dubai, Kerala, Europe…" aria-label="Search destinations">
           <button class="btn btn--primary btn--sm" type="submit">Search</button>
@@ -149,7 +149,7 @@
         <button class="pkg-tab" data-target="pkg-dom">Domestic Packages</button>
       </div>
       <div class="pkg-panel is-active" id="pkg-intl"><div class="pkg-grid" id="pkg-intl-grid" aria-label="International packages"></div></div>
-      <div class="pkg-panel" id="pkg-dom"><div class="pkg-grid" id="pkg-dom-grid" aria-label="National packages"></div></div>
+      <div class="pkg-panel" id="pkg-dom"><div class="pkg-grid" id="pkg-dom-grid" aria-label="Domestic packages"></div></div>
       <div class="reveal" style="text-align:center;margin-top:44px">
         <a class="btn btn--primary" href="packages.html">View All Packages <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
       </div>
@@ -207,12 +207,12 @@
         <p class="section-sub">One stop for everything your journey needs.</p>
       </div>
       <div class="svc-grid">
-        <div class="svc-card reveal" data-delay="1"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a1 1 0 0 0-.9 1.7l4.6 3.6-1.7 2.9-2.5-.3a1 1 0 0 0-.9 1.6l2 2 2 2a1 1 0 0 0 1.6-.9l-.3-2.5 2.9-1.7 3.6 4.6a1 1 0 0 0 1.7-.9z"/></svg></div><h4>Flights</h4></div>
-        <div class="svc-card reveal" data-delay="1"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 21V7l8-4 8 4v14M9 21v-4h6v4"/><path d="M9 9h.01M15 9h.01"/></svg></div><h4>Hotels</h4></div>
-        <div class="svc-card reveal" data-delay="2"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v11M4 17h16M4 11h16"/><circle cx="8" cy="14.5" r="1"/><circle cx="16" cy="14.5" r="1"/></svg></div><h4>Bus &amp; Cabs</h4></div>
-        <div class="svc-card reveal" data-delay="2"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></div><h4>Holidays</h4></div>
-        <div class="svc-card reveal" data-delay="3"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h4M7 12h6"/><circle cx="17" cy="9" r="2"/></svg></div><h4>Visa Assistance</h4></div>
-        <div class="svc-card reveal" data-delay="3"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg></div><h4>Insurance</h4></div>
+        <a class="svc-card reveal" href="contact.html" data-delay="1"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a1 1 0 0 0-.9 1.7l4.6 3.6-1.7 2.9-2.5-.3a1 1 0 0 0-.9 1.6l2 2 2 2a1 1 0 0 0 1.6-.9l-.3-2.5 2.9-1.7 3.6 4.6a1 1 0 0 0 1.7-.9z"/></svg></div><h4>Flights</h4></a>
+        <a class="svc-card reveal" href="contact.html" data-delay="1"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 21V7l8-4 8 4v14M9 21v-4h6v4"/><path d="M9 9h.01M15 9h.01"/></svg></div><h4>Hotels</h4></a>
+        <a class="svc-card reveal" href="contact.html" data-delay="2"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v11M4 17h16M4 11h16"/><circle cx="8" cy="14.5" r="1"/><circle cx="16" cy="14.5" r="1"/></svg></div><h4>Bus &amp; Cabs</h4></a>
+        <a class="svc-card reveal" href="contact.html" data-delay="2"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></div><h4>Holidays</h4></a>
+        <a class="svc-card reveal" href="contact.html" data-delay="3"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h4M7 12h6"/><circle cx="17" cy="9" r="2"/></svg></div><h4>Visa Assistance</h4></a>
+        <a class="svc-card reveal" href="contact.html" data-delay="3"><div class="svc-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg></div><h4>Insurance</h4></a>
       </div>
     </div>
   </section>
@@ -292,7 +292,7 @@
   </section>
 
   <footer id="site-footer" class="footer"></footer>
-  <script src="assets/js/packages.js?v=6"></script>
-  <script src="assets/js/site.js?v=6"></script>
+  <script src="assets/js/packages.js?v=7"></script>
+  <script src="assets/js/site.js?v=7"></script>
 </body>
 </html>
