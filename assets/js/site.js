@@ -75,7 +75,7 @@
     var header =
       '<div class="container"><nav class="nav">' +
         '<a class="nav__logo" href="index.html" aria-label="Vandana Travel Experts home">' +
-          '<img src="assets/img/logo.png?v=3" alt="Vandana Travel Experts logo">' +
+          '<img src="assets/img/logo.png?v=4" alt="Vandana Travel Experts logo">' +
           '<span class="nav__logo-text"><span class="ln"><b>Vandana</b> Travel Experts</span></span>' +
         "</a>" +
         '<button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false"><span></span></button>' +
@@ -124,7 +124,7 @@
       '<div class="container">' +
         '<div class="footer__top">' +
           '<div class="footer__brand">' +
-            '<img src="assets/img/logo.png?v=3" alt="Vandana Travel Experts">' +
+            '<img src="assets/img/logo.png?v=4" alt="Vandana Travel Experts">' +
             "<p>A trusted travel management company with 25+ years of expertise — customised holidays, corporate travel and MICE events, crafted with precision and care.</p>" +
             '<ul class="footer__contact">' +
               "<li>" + I.phone + '<a href="tel:' + PHONE + '">' + PHONE + " &nbsp;|&nbsp; " + PHONE2 + "</a></li>" +
