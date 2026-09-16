@@ -1338,3 +1338,11 @@ body.modal-open { overflow: hidden; }
 .mice-dest h3{font-family:var(--ff-head);font-weight:700;font-size:1.12rem;color:var(--navy);margin-bottom:10px;line-height:1.3}
 .mice-dest p{color:var(--slate-500);font-size:.95rem;line-height:1.6}
 @media (max-width:860px){.mice-dest-grid{grid-template-columns:1fr}}
+
+/* MICE — hero background slideshow (same Ken Burns animation as home hero) */
+.svc-hero--slides{background:#04264e}
+.svc-hero--slides .hero__slides{position:absolute;inset:0;z-index:0}
+.svc-hero--slides .svc-hero__overlay{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(120deg,rgba(4,38,78,.9) 0%,rgba(4,38,78,.6) 55%,rgba(3,83,163,.5) 100%)}
+.svc-hero--slides .svc-hero__glow{z-index:1}
+.svc-hero--slides .container{position:relative;z-index:2}
