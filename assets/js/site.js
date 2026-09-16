@@ -447,8 +447,11 @@
   }
 
   /* ================= FORMS (free, UNLIMITED FormSubmit + captcha) ================= */
-  var FORM_POST = "https://formsubmit.co/" + EMAIL;          // native POST → FormSubmit captcha → thankyou.html
-  var FORM_AJAX = "https://formsubmit.co/ajax/" + EMAIL;     // newsletter (single email field)
+  // FormSubmit alias (keeps the email out of the page source). Activated & bound
+  // to vandanatravelexperts@gmail.com.
+  var FORM_ID = "d17060d003ec2c43d856f1999a8432e5";
+  var FORM_POST = "https://formsubmit.co/" + FORM_ID;        // native POST → thankyou.html
+  var FORM_AJAX = "https://formsubmit.co/ajax/" + FORM_ID;   // ajax (newsletter / fallback)
   function val(f, n) { var el = f.querySelector("[name=" + n + "]"); return el ? el.value.trim() : ""; }
   function setBtn(btn, loading) { if (btn) { btn.disabled = loading; btn.classList.toggle("is-loading", loading); } }
   function hidden(f, name, value) {

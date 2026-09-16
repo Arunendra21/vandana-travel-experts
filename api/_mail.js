@@ -3,6 +3,9 @@
    free, unlimited, no private credentials in the browser. Returns true on
    success, false on failure (never throws) so callers can record the status. */
 var TEAM_EMAIL = process.env.TEAM_EMAIL || "vandanatravelexperts@gmail.com";
+// FormSubmit alias — used in the endpoint URL instead of the naked email so the
+// address is never exposed. Activated & tied to vandanatravelexperts@gmail.com.
+var FORMSUBMIT_ID = process.env.FORMSUBMIT_ID || "d17060d003ec2c43d856f1999a8432e5";
 // FormSubmit's anti-abuse rejects server-side requests that lack a referrer from
 // the site's own domain, so we send one. One-time: the FIRST send triggers a
 // FormSubmit "Activate Form" email to TEAM_EMAIL — click it once and delivery
@@ -26,7 +29,7 @@ async function emailTeam(f) {
     params.set("Source", f.source || "website");
     var ctrl = new AbortController();
     var t = setTimeout(function () { ctrl.abort(); }, 8000);
-    var r = await fetch("https://formsubmit.co/ajax/" + TEAM_EMAIL, {
+    var r = await fetch("https://formsubmit.co/ajax/" + FORMSUBMIT_ID, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
