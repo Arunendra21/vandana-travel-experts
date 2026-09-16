@@ -191,7 +191,7 @@ async function doDashboard(req, res) {
     apis: {
       flight: { provider: "AeroDataBox / AviationStack", configured: !!(process.env.AERODATABOX_KEY || process.env.AVIATIONSTACK_KEY) },
       visa: { provider: "Vandana curated (official sources)", configured: true },
-      email: { provider: "FormSubmit", configured: true }
+      email: { provider: "SMTP (Nodemailer)", configured: mail.configured() }
     }
   });
 }

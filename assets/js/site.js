@@ -446,12 +446,10 @@
     });
   }
 
-  /* ================= FORMS (free, UNLIMITED FormSubmit + captcha) ================= */
-  // FormSubmit alias (keeps the email out of the page source). Activated & bound
-  // to vandanatravelexperts@gmail.com.
-  var FORM_ID = "d17060d003ec2c43d856f1999a8432e5";
-  var FORM_POST = "https://formsubmit.co/" + FORM_ID;        // native POST → thankyou.html
-  var FORM_AJAX = "https://formsubmit.co/ajax/" + FORM_ID;   // ajax (newsletter / fallback)
+  /* ================= FORMS =================
+     All forms post to our OWN backend (/api/inquiry), which stores the enquiry
+     in the database and emails the team via SMTP (Nodemailer). No third-party
+     form service. Honeypot + time-trap guard against spam. */
   function val(f, n) { var el = f.querySelector("[name=" + n + "]"); return el ? el.value.trim() : ""; }
   function setBtn(btn, loading) { if (btn) { btn.disabled = loading; btn.classList.toggle("is-loading", loading); } }
   function hidden(f, name, value) {
@@ -487,15 +485,14 @@
     }
 
     if (type === "newsletter") {
-      // inline AJAX subscribe — unlimited, no captcha needed for a single email field
+      // subscribe → our backend (stored + emailed to the team via SMTP)
       f.addEventListener("submit", function (e) {
         e.preventDefault();
         var msg = f.querySelector(".form-msg");
         if (f.querySelector('[name="_honey"]').value) { subscribed(f, msg); return; }
         if (!validateRequired(f, msg)) return;
         var btn = f.querySelector('button[type="submit"]'); setBtn(btn, true);
-        var fd = new FormData(f); fd.append("_subject", "Newsletter subscription"); fd.append("_captcha", "false");
-        fetch(FORM_AJAX, { method: "POST", body: fd, headers: { Accept: "application/json" } })
+        fetch(API_BASE + "/api/inquiry", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ name: "Newsletter subscriber", email: val(f, "email") || val(f, "EMAIL"), message: "Newsletter subscription request.", source: "newsletter" }) })
           .then(function () { subscribed(f, msg); })
           .catch(function () { subscribed(f, msg); });
       });
@@ -520,9 +517,13 @@
       };
       fetch(API_BASE + "/api/inquiry", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload) })
         .then(function (r) { return r.json().catch(function () { return {}; }); })
-        .then(function (j) { if (j && j.ok) inquirySuccess(f); else fallbackFormSubmit(f, type, msg, btn); })
-        .catch(function () { fallbackFormSubmit(f, type, msg, btn); });
+        .then(function (j) { if (j && j.ok) inquirySuccess(f); else formFailed(f, msg, btn, j && j.message); })
+        .catch(function () { formFailed(f, msg, btn); });
     });
+  }
+  function formFailed(f, msg, btn, why) {
+    if (msg) { msg.innerHTML = (why ? esc(why) + " " : "We couldn't send your enquiry right now. ") + 'Please email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a> or WhatsApp ' + PHONE + "."; msg.className = "form-msg err"; }
+    setBtn(btn, false);
   }
   function inquirySuccess(f) {
     var host = f.parentNode;
@@ -530,15 +531,6 @@
     s.innerHTML = '<div class="form-success__tick">' + I.check + "</div><h3>Thank you!</h3><p>Your enquiry has reached the Vandana Travel Experts team. We'll get back to you within 24 hours.</p>" +
       '<div class="form-success__cta"><a class="btn btn--outline btn--sm" href="https://wa.me/' + WA + '">Message us on WhatsApp</a></div>';
     f.style.display = "none"; host.appendChild(s);
-  }
-  function fallbackFormSubmit(f, type, msg, btn) {
-    var fd = new FormData(f); fd.delete("_honey");
-    fd.append("_subject", type === "booking" ? "New Booking Enquiry — " + (val(f, "package") || "Package") : "New Website Enquiry from " + (val(f, "name") || ""));
-    fd.append("_template", "table"); fd.append("_captcha", "false");
-    fetch(FORM_AJAX, { method: "POST", body: fd, headers: { Accept: "application/json" } })
-      .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (j) { if (j && (j.success === true || j.success === "true")) inquirySuccess(f); else { if (msg) { msg.innerHTML = 'We couldn\'t send right now. Please email <a href="mailto:' + EMAIL + '">' + EMAIL + "</a> or WhatsApp us."; msg.className = "form-msg err"; } setBtn(btn, false); } })
-      .catch(function () { if (msg) { msg.innerHTML = 'Network issue. <a href="mailto:' + EMAIL + '">Email us</a> or WhatsApp ' + PHONE + "."; msg.className = "form-msg err"; } setBtn(btn, false); });
   }
   function initForms() { document.querySelectorAll("form[data-form]").forEach(initForm); }
 

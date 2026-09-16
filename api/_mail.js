@@ -1,50 +1,73 @@
 /* Shared server-side email delivery (helper, not an HTTP route).
-   Sends enquiry notifications to the team via FormSubmit's server API —
-   free, unlimited, no private credentials in the browser. Returns true on
-   success, false on failure (never throws) so callers can record the status. */
-var TEAM_EMAIL = process.env.TEAM_EMAIL || "vandanatravelexperts@gmail.com";
-// FormSubmit alias — used in the endpoint URL instead of the naked email so the
-// address is never exposed. Activated & tied to vandanatravelexperts@gmail.com.
-var FORMSUBMIT_ID = process.env.FORMSUBMIT_ID || "d17060d003ec2c43d856f1999a8432e5";
-// FormSubmit's anti-abuse rejects server-side requests that lack a referrer from
-// the site's own domain, so we send one. One-time: the FIRST send triggers a
-// FormSubmit "Activate Form" email to TEAM_EMAIL — click it once and delivery
-// works from then on. Until activated, emailTeam() honestly returns false and the
-// inquiry is still safely stored in the database (admin can resend later).
-var SITE_URL = process.env.SITE_URL || "https://vandana-travel-experts.vercel.app";
+   Sends enquiry notifications from the OWN backend via SMTP using Nodemailer
+   (same approach as the DAM_ project) — no third-party form service, no
+   activation step. Configure SMTP_* env vars (e.g. a Gmail address + App
+   Password). Returns true on success, false on failure (never throws) so the
+   caller can record the delivery status. The inquiry is always stored first,
+   so nothing is lost if email is unconfigured or fails. */
+var nodemailer = require("nodemailer");
+
+var TEAM_EMAIL = process.env.TEAM_EMAIL || "vandanatravelexperts@gmail.com"; // where enquiries are sent
+var SMTP = {
+  host: process.env.SMTP_HOST || "",
+  port: parseInt(process.env.SMTP_PORT || "465", 10),
+  user: process.env.SMTP_USER || "",
+  pass: process.env.SMTP_PASSWORD || "",
+  from: process.env.SMTP_FROM || process.env.SMTP_USER || TEAM_EMAIL
+};
+
+function configured() { return !!(SMTP.host && SMTP.user && SMTP.pass); }
+
+var _tx = null;
+function transporter() {
+  if (!_tx) {
+    _tx = nodemailer.createTransport({
+      host: SMTP.host,
+      port: SMTP.port,
+      secure: SMTP.port === 465, // 465 = implicit TLS; 587 = STARTTLS
+      auth: { user: SMTP.user, pass: SMTP.pass }
+    });
+  }
+  return _tx;
+}
+
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+function buildEmail(f) {
+  var rows = [
+    ["Name", f.name], ["Email", f.email], ["Phone", f.phone],
+    ["Interest", f.package], ["Travellers", f.travellers], ["Travel date", f.travel_date],
+    ["Source", f.source]
+  ].filter(function (r) { return r[1]; });
+  var html = '<div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:auto;color:#1f2937">' +
+    '<div style="background:#046bd2;color:#fff;padding:16px 20px;border-radius:10px 10px 0 0">' +
+      '<h2 style="margin:0;font-size:18px">New website enquiry</h2>' +
+      '<p style="margin:4px 0 0;font-size:13px;opacity:.9">Vandana Travel Experts</p></div>' +
+    '<table style="width:100%;border-collapse:collapse;border:1px solid #e6ecf4;border-top:none">' +
+      rows.map(function (r, i) {
+        return '<tr style="background:' + (i % 2 ? "#f7fafd" : "#fff") + '"><td style="padding:10px 14px;font-weight:bold;color:#0f2f57;width:140px;border-bottom:1px solid #eef2f7">' + esc(r[0]) + '</td><td style="padding:10px 14px;border-bottom:1px solid #eef2f7">' + esc(r[1]) + '</td></tr>';
+      }).join("") +
+      (f.message ? '<tr><td style="padding:10px 14px;font-weight:bold;color:#0f2f57;vertical-align:top">Message</td><td style="padding:10px 14px;white-space:pre-wrap">' + esc(f.message) + '</td></tr>' : '') +
+    '</table>' +
+    '<p style="font-size:12px;color:#64748b;padding:12px 4px">Reply directly to this email to respond to the customer.</p></div>';
+  var text = rows.map(function (r) { return r[0] + ": " + r[1]; }).join("\n") + (f.message ? "\n\nMessage:\n" + f.message : "");
+  return { html: html, text: text };
+}
 
 async function emailTeam(f) {
+  if (!configured()) return false;
   try {
-    var params = new URLSearchParams();
-    params.set("_subject", "New enquiry — " + (f.package || "Website"));
-    params.set("_template", "table");
-    params.set("_captcha", "false");
-    params.set("Name", f.name || "");
-    params.set("Email", f.email || "");
-    params.set("Phone", f.phone || "");
-    params.set("Package", f.package || "");
-    params.set("Travellers", f.travellers || "");
-    params.set("Travel date", f.travel_date || "");
-    params.set("Message", f.message || "");
-    params.set("Source", f.source || "website");
-    var ctrl = new AbortController();
-    var t = setTimeout(function () { ctrl.abort(); }, 8000);
-    var r = await fetch("https://formsubmit.co/ajax/" + FORMSUBMIT_ID, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-        Referer: SITE_URL + "/",
-        Origin: SITE_URL
-      },
-      body: params.toString(),
-      signal: ctrl.signal
-    }).finally(function () { clearTimeout(t); });
-    if (!r.ok) return false;
-    var j = await r.json().catch(function () { return null; });
-    // FormSubmit returns { success: "true" } once the form is activated.
-    return !!(j && (j.success === true || j.success === "true"));
+    var body = buildEmail(f);
+    var info = await transporter().sendMail({
+      from: '"Vandana Travel Experts" <' + SMTP.from + '>',
+      to: TEAM_EMAIL,
+      replyTo: (f.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) ? f.email : undefined,
+      subject: "New enquiry — " + (f.package || "Website"),
+      text: body.text,
+      html: body.html
+    });
+    return !!(info && (info.accepted && info.accepted.length || info.messageId));
   } catch (e) { return false; }
 }
 
-module.exports = { emailTeam: emailTeam, TEAM_EMAIL: TEAM_EMAIL };
+module.exports = { emailTeam: emailTeam, TEAM_EMAIL: TEAM_EMAIL, configured: configured };
