@@ -152,7 +152,7 @@ a:focus-visible, button:focus-visible, .btn:focus-visible { outline-offset: 3px;
   -webkit-backdrop-filter: saturate(180%) blur(16px);
   box-shadow: 0 6px 30px -12px rgba(13, 23, 42, .22); padding: 9px 0; border-bottom-color: var(--border);
 }
-.nav { display: flex; align-items: center; gap: 24px; }
+.nav { display: flex; align-items: center; gap: 16px; }
 .nav__logo { display: flex; align-items: center; gap: 13px; flex-shrink: 0; }
 .nav__logo img { height: 54px; width: auto; transition: height .4s var(--ease); filter: drop-shadow(0 4px 10px rgba(0,0,0,.22)); }
 .site-header.is-solid .nav__logo img { height: 46px; filter: none; }
@@ -171,9 +171,9 @@ a:focus-visible, button:focus-visible, .btn:focus-visible { outline-offset: 3px;
 .nav__item { position: relative; }
 .nav__link {
   position: relative;
-  display: flex; align-items: center; gap: 6px;
-  font-family: var(--ff-head); font-weight: 500; font-size: .95rem; color: #fff;
-  padding: 10px 15px; border-radius: 10px; transition: color .25s, background .25s;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  font-family: var(--ff-head); font-weight: 500; font-size: .9rem; color: #fff;
+  padding: 9px 11px; border-radius: 10px; transition: color .25s, background .25s;
 }
 .nav__link .caret { width: 14px; height: 14px; transition: transform .3s; opacity: .8; }
 /* animated underline indicator */
