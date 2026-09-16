@@ -50,23 +50,56 @@
     doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>',
     eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
     down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
-    briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>'
+    briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+    temple: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l4 4H8l4-4z"/><path d="M9 6v3M15 6v3"/><path d="M4 21v-7l8-4 8 4v7"/><path d="M4 21h16"/><path d="M10 21v-4a2 2 0 0 1 4 0v4"/></svg>'
   };
   window.VTE_ICONS = I;
 
   var PKGS = (window.VTE_PACKAGES || []);
   function pkgById(id) { for (var i = 0; i < PKGS.length; i++) if (PKGS[i].id === id) return PKGS[i]; return null; }
 
+  /* ---- Pilgrimage classification: single source of truth ----
+     A package is a pilgrimage tour if the admin explicitly marks it
+     (future-proof: category "Pilgrimage" or a "pilgrimage" tag), OR its
+     destination/title clearly indicates a temple / holy-site itinerary.
+     Derived, so no package data is duplicated. Used by BOTH the mega-menu
+     and the packages page so classification lives in exactly one place. */
+  var PILG_WORDS = ["ayodhya","varanasi","kashi","prayagraj","chitrakoot","deoghar","baidyanath","jyotirlinga","jyotirling","mathura","vrindavan","brij","bodhgaya","naimisharanya","chhapaiya","sarnath","vindhyachal","triveni","sangam","darshan","temple","pilgrim","tirth","dham","jagannath","tirupati","shirdi","vaishno","amarnath","kedarnath","badrinath","somnath","rameshwaram","dwarka","haridwar","rishikesh","ujjain","mahakal","shrine","holy triangle"];
+  function isPilgrimage(p) {
+    if (!p) return false;
+    if (p.category === "Pilgrimage") return true;
+    var tags = p.tags || p.tag;
+    if (tags) { var t = (typeof tags === "string" ? tags : tags.join(" ")).toLowerCase(); if (t.indexOf("pilgrim") > -1) return true; }
+    var hay = ((p.title || "") + " " + (p.region || "") + " " + (p.country || "")).toLowerCase();
+    for (var i = 0; i < PILG_WORDS.length; i++) if (hay.indexOf(PILG_WORDS[i]) > -1) return true;
+    return false;
+  }
+  // Menu buckets — a package appears in exactly one column (pilgrimage pulled out of domestic).
+  function pkgsIntl() { return PKGS.filter(function (p) { return p.category === "International" && !isPilgrimage(p); }); }
+  function pkgsDomestic() { return PKGS.filter(function (p) { return p.category === "National" && !isPilgrimage(p); }); }
+  function pkgsPilgrimage() { return PKGS.filter(isPilgrimage); }
+
   /* ================= HEADER ================= */
   function buildPackagesMega() {
-    var intl = PKGS.filter(function (p) { return p.category === "International"; });
-    var nat = PKGS.filter(function (p) { return p.category === "National"; });
-    function col(title, list, cat) {
-      var links = list.map(function (p) { return '<a class="dropdown__link" href="package.html?id=' + p.id + '">' + esc(p.country === "India" ? p.region : p.country) + " — " + esc(p.title) + "</a>"; }).join("");
-      return '<div class="dropdown__group"><div class="dropdown__title">' + I.globe + title +
-        ' <a class="dropdown__all" href="packages.html?cat=' + cat + '">View all</a></div>' + links + "</div>";
+    function item(p) {
+      var dest = p.country === "India" ? (p.region || "India") : (p.country || p.region || "");
+      return '<a class="mega__item" role="menuitem" href="package.html?id=' + p.id + '">' +
+        (dest ? '<span class="mega__dest">' + esc(dest) + "</span>" : "") +
+        '<span class="mega__name">' + esc(p.title) + "</span></a>";
     }
-    return '<div class="dropdown dropdown--mega dropdown--pkgs">' + col("International Packages", intl, "International") + col("Domestic Packages", nat, "National") + "</div>";
+    function col(icon, title, list, cat) {
+      return '<section class="mega__col">' +
+        '<div class="mega__head"><span class="mega__ic">' + icon + "</span>" +
+          '<h4 class="mega__title">' + title + "</h4>" +
+          '<a class="mega__all" href="packages.html?cat=' + cat + '">View all ' + I.chevR + "</a></div>" +
+        '<div class="mega__list">' + (list.length ? list.map(item).join("") : '<span class="mega__empty">Coming soon</span>') + "</div>" +
+      "</section>";
+    }
+    return '<div class="dropdown dropdown--mega" role="menu" aria-label="Packages">' +
+      col(I.globe, "International", pkgsIntl(), "International") +
+      col(I.pin, "Domestic", pkgsDomestic(), "National") +
+      col(I.temple, "Pilgrimage", pkgsPilgrimage(), "pilgrimage") +
+    "</div>";
   }
 
   function renderHeader() {
@@ -81,7 +114,7 @@
         '<button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false"><span></span></button>' +
         '<ul class="nav__menu">' +
           '<li class="nav__item"><a class="nav__link' + act("home") + '" href="index.html">Home</a></li>' +
-          '<li class="nav__item has-mega"><a class="nav__link' + act("packages") + '" href="packages.html">Packages ' + I.caret + '</a>' + buildPackagesMega() + "</li>" +
+          '<li class="nav__item has-mega"><a class="nav__link' + act("packages") + '" href="packages.html" aria-haspopup="true" aria-expanded="false">Packages ' + I.caret + '</a>' + buildPackagesMega() + "</li>" +
           '<li class="nav__item"><a class="nav__link' + act("corporate") + '" href="corporate-travel.html">Corporate Travel</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("mice") + '" href="mice.html">MICE</a></li>' +
           '<li class="nav__item"><a class="nav__link' + act("flights") + '" href="flights.html">Flights</a></li>' +
@@ -103,14 +136,57 @@
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
     });
     bd.addEventListener("click", function () { document.body.classList.remove("nav-open"); });
-    el.querySelectorAll(".nav__item.has-mega > .nav__link").forEach(function (lnk) {
+    var isMobileNav = function () { return window.innerWidth <= 900; };
+    el.querySelectorAll(".nav__item.has-mega").forEach(function (item) {
+      var lnk = item.querySelector(".nav__link");
+      function setExpanded(v) { lnk.setAttribute("aria-expanded", v ? "true" : "false"); }
+      // Mobile: tapping "Packages" expands the section; desktop keeps CSS hover.
       lnk.addEventListener("click", function (e) {
-        if (window.innerWidth <= 900) { e.preventDefault(); lnk.parentElement.classList.toggle("open"); }
+        if (isMobileNav()) { e.preventDefault(); var open = item.classList.toggle("open"); setExpanded(open); }
       });
+      // Keyboard (desktop): Enter / Space / ArrowDown opens; Escape closes and restores focus.
+      lnk.addEventListener("keydown", function (e) {
+        if (isMobileNav()) return;
+        if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+          e.preventDefault(); item.classList.add("kbd-open"); setExpanded(true);
+          var first = item.querySelector(".mega__item, .mega__all"); if (first) first.focus();
+        }
+      });
+      // Mobile sub-accordion: each category head expands its own list.
+      item.querySelectorAll(".mega__head").forEach(function (h) {
+        h.addEventListener("click", function (e) {
+          if (!isMobileNav()) return;
+          if (e.target.closest(".mega__all")) return; // let "View all" navigate
+          e.preventDefault(); h.parentElement.classList.toggle("is-open");
+        });
+      });
+      item.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") { item.classList.remove("kbd-open"); setExpanded(false); lnk.focus(); }
+      });
+    });
+    // Close any keyboard-opened mega on outside click or Escape.
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".nav__item.has-mega")) el.querySelectorAll(".nav__item.has-mega.kbd-open").forEach(function (i) { i.classList.remove("kbd-open"); i.querySelector(".nav__link").setAttribute("aria-expanded", "false"); });
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") el.querySelectorAll(".nav__item.has-mega.kbd-open").forEach(function (i) { i.classList.remove("kbd-open"); i.querySelector(".nav__link").setAttribute("aria-expanded", "false"); });
     });
     el.querySelectorAll(".nav__menu a").forEach(function (a) {
       if (!a.parentElement.classList.contains("has-mega")) a.addEventListener("click", function () { document.body.classList.remove("nav-open"); });
     });
+    // Keep the wide packages mega-menu inside the viewport (clamp its left).
+    function positionMega() {
+      var item = el.querySelector(".nav__item.has-mega"); if (!item) return;
+      var mega = item.querySelector(".dropdown--mega"); if (!mega) return;
+      if (isMobileNav()) { mega.style.left = ""; return; }
+      var ir = item.getBoundingClientRect(), mw = mega.offsetWidth, vw = document.documentElement.clientWidth;
+      var left = ir.left + ir.width / 2 - mw / 2;
+      left = Math.max(12, Math.min(left, vw - 12 - mw));
+      mega.style.left = (left - ir.left) + "px";
+    }
+    positionMega();
+    window.addEventListener("resize", positionMega);
+    el.querySelector(".nav__item.has-mega > .nav__link").addEventListener("mouseenter", positionMega);
     function onScroll() { el.classList.toggle("is-solid", window.scrollY > 30); }
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -183,7 +259,7 @@
     var chips = (p.highlights || []).slice(0, 3).map(function (h) { return "<li>" + esc(h) + "</li>"; }).join("");
     var catClass = p.category === "National" ? "is-nat" : "is-intl";
     var loc = p.country === "India" ? p.region : p.country;
-    return '<article class="pkg-card reveal" data-cat="' + p.category + '" data-name="' + esc((p.title + " " + p.country + " " + p.region).toLowerCase()) + '">' +
+    return '<article class="pkg-card reveal" data-cat="' + p.category + '" data-pilg="' + (isPilgrimage(p) ? "1" : "0") + '" data-name="' + esc((p.title + " " + p.country + " " + p.region).toLowerCase()) + '">' +
       '<a class="pkg-card__media" href="package.html?id=' + p.id + '" aria-label="' + esc(p.title) + '">' +
         '<img src="' + p.image + '" alt="' + esc(p.title) + ' — ' + esc(loc) + '" loading="lazy">' +
         '<span class="pkg-card__badge ' + catClass + '">' + I.globe + esc(catLabel(p.category)) + "</span>" +
@@ -254,7 +330,11 @@
     function apply() {
       var shown = 0;
       grid.querySelectorAll(".pkg-card").forEach(function (c) {
-        var okCat = current === "all" || c.getAttribute("data-cat") === current;
+        var cat = c.getAttribute("data-cat"), pilg = c.getAttribute("data-pilg") === "1";
+        var okCat = current === "all" ? true
+          : current === "pilgrimage" ? pilg
+          : current === "National" ? (cat === "National" && !pilg)
+          : cat === current;
         var okTerm = !term || c.getAttribute("data-name").indexOf(term) > -1;
         var show = okCat && okTerm;
         c.style.display = show ? "" : "none";
