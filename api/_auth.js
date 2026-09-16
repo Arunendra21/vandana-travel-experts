@@ -64,18 +64,36 @@ function clearSession(res) {
   res.setHeader("Set-Cookie", COOKIE + "=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0");
 }
 
-/* ---- authorization: returns the admin row or null ---- */
+/* ---- authorization: returns the ACTIVE admin row or null ---- */
 async function requireAdmin(req) {
   if (!db.dbConfigured() || !secret()) return null;
   var payload = readToken(getCookie(req, COOKIE));
   if (!payload) return null;
   try {
-    var r = await db.sql`SELECT id, email, token_version, must_change FROM admins WHERE id = ${payload.id} LIMIT 1`;
+    var r = await db.sql`SELECT id, email, name, role, status, permissions, token_version, must_change FROM admins WHERE id = ${payload.id} LIMIT 1`;
     var admin = r.rows[0];
     if (!admin) return null;
-    if (admin.token_version !== payload.ver) return null; // invalidated (logout / password change)
+    if (admin.token_version !== payload.ver) return null; // invalidated (logout / password / disable)
+    if (admin.status && admin.status !== "active") return null; // disabled / archived / invited cannot act
+    if (!Array.isArray(admin.permissions)) { try { admin.permissions = JSON.parse(admin.permissions || "[]"); } catch (e) { admin.permissions = []; } }
     return admin;
   } catch (e) { return null; }
+}
+
+/* ---- roles & permissions (enforced server-side; super_admin has everything) ---- */
+// Permissions that can be granted to a normal ADMIN (map to real features only).
+var ASSIGNABLE_PERMS = [
+  "packages.view", "packages.create", "packages.edit", "packages.delete", "packages.publish",
+  "inquiries.view", "inquiries.edit", "inquiries.delete",
+  "documents.view", "documents.create", "documents.edit", "documents.delete",
+  "media.upload", "integrations.view", "settings.view"
+];
+function normalizeEmail(e) { return String(e == null ? "" : e).trim().toLowerCase(); }
+function isSuper(admin) { return !!(admin && admin.role === "super_admin"); }
+function can(admin, perm) {
+  if (!admin) return false;
+  if (admin.role === "super_admin") return true;
+  return Array.isArray(admin.permissions) && admin.permissions.indexOf(perm) >= 0;
 }
 
 /* ---- CSRF defence: state-changing requests must be same-origin ---- */
@@ -105,4 +123,4 @@ async function readBody(req) {
   });
 }
 
-module.exports = { COOKIE, MAX_AGE, secret, hashPassword, verifyPassword, makeToken, readToken, getCookie, setSession, clearSession, requireAdmin, sameOrigin, json, readBody };
+module.exports = { COOKIE, MAX_AGE, secret, hashPassword, verifyPassword, makeToken, readToken, getCookie, setSession, clearSession, requireAdmin, sameOrigin, json, readBody, isSuper, can, normalizeEmail, ASSIGNABLE_PERMS };

@@ -21,8 +21,14 @@ async function ensureSchema() {
   await sql`CREATE TABLE IF NOT EXISTS admins (
     id SERIAL PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
-    pass TEXT NOT NULL,
+    name TEXT,
+    pass TEXT NOT NULL DEFAULT '',
     role TEXT NOT NULL DEFAULT 'admin',
+    status TEXT NOT NULL DEFAULT 'active',
+    permissions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    invite_hash TEXT,
+    invite_expires TIMESTAMPTZ,
+    created_by INTEGER,
     token_version INTEGER NOT NULL DEFAULT 0,
     must_change BOOLEAN NOT NULL DEFAULT FALSE,
     failed INTEGER NOT NULL DEFAULT 0,
@@ -104,6 +110,13 @@ async function ensureSchema() {
   await sql`ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS email_status TEXT NOT NULL DEFAULT 'pending'`;
   await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin'`;
   await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS last_login TIMESTAMPTZ`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS name TEXT`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active'`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS permissions JSONB NOT NULL DEFAULT '[]'::jsonb`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS invite_hash TEXT`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS invite_expires TIMESTAMPTZ`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS created_by INTEGER`;
+  await sql`ALTER TABLE admins ALTER COLUMN pass SET DEFAULT ''`;
   await sql`CREATE INDEX IF NOT EXISTS idx_pkg_pub ON packages (status, deleted, sort)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_inq_created ON inquiries (created_at DESC)`;
 }
