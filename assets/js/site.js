@@ -81,20 +81,13 @@
         '<button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false"><span></span></button>' +
         '<ul class="nav__menu">' +
           '<li class="nav__item"><a class="nav__link' + act("home") + '" href="index.html">Home</a></li>' +
-          '<li class="nav__item"><a class="nav__link' + act("about") + '" href="about.html">About Us</a></li>' +
           '<li class="nav__item has-mega"><a class="nav__link' + act("packages") + '" href="packages.html">Packages ' + I.caret + '</a>' + buildPackagesMega() + "</li>" +
-          '<li class="nav__item has-mega"><a class="nav__link' + (act("corporate") || act("mice")) + '" href="corporate-travel.html">Services ' + I.caret + '</a>' +
-            '<div class="dropdown dropdown--tools">' +
-              '<a class="dropdown__link" href="corporate-travel.html">' + I.globe + ' Corporate Travel</a>' +
-              '<a class="dropdown__link" href="mice.html">' + I.star + ' MICE &amp; Events</a>' +
-            "</div></li>" +
-          '<li class="nav__item has-mega"><a class="nav__link' + (act("flights") || act("visa") || act("documents")) + '" href="flights.html">Travel Info ' + I.caret + '</a>' +
-            '<div class="dropdown dropdown--tools">' +
-              '<a class="dropdown__link" href="flights.html">' + I.plane + ' Live Flight Status</a>' +
-              '<a class="dropdown__link" href="visa.html">' + I.doc + ' Visa Requirements</a>' +
-              '<a class="dropdown__link" href="documents.html">' + I.doc + ' Travel Documents</a>' +
-            "</div></li>" +
-          '<li class="nav__item"><a class="nav__link' + act("contact") + '" href="contact.html">Contact Us</a></li>' +
+          '<li class="nav__item"><a class="nav__link' + act("corporate") + '" href="corporate-travel.html">Corporate Travel</a></li>' +
+          '<li class="nav__item"><a class="nav__link' + act("mice") + '" href="mice.html">MICE</a></li>' +
+          '<li class="nav__item"><a class="nav__link' + act("about") + '" href="about.html">About</a></li>' +
+          '<li class="nav__item"><a class="nav__link' + act("visa") + '" href="visa.html">Visa</a></li>' +
+          '<li class="nav__item"><a class="nav__link' + act("flights") + '" href="flights.html">Flights</a></li>' +
+          '<li class="nav__item"><a class="nav__link' + act("contact") + '" href="contact.html">Contact</a></li>' +
           '<li class="nav__cta"><a class="btn btn--primary btn--sm" href="contact.html">Get a Quote ' + I.arrow + "</a></li>" +
         "</ul>" +
         '<a class="nav__cta desktop-only btn btn--primary btn--sm" href="contact.html">Get a Quote ' + I.arrow + "</a>" +
@@ -136,7 +129,8 @@
             '<ul class="footer__contact">' +
               "<li>" + I.phone + '<a href="tel:' + PHONE + '">' + PHONE + " &nbsp;|&nbsp; " + PHONE2 + "</a></li>" +
               "<li>" + I.mail + '<a href="mailto:' + EMAIL + '">' + EMAIL + "</a></li>" +
-              "<li>" + I.pin + "<span>1604, 16th Floor, Kamdhenu Commerz, Sector 14, Kharghar, Navi Mumbai – 410210</span></li>" +
+              "<li>" + I.pin + "<span><b>Navi Mumbai:</b> 1604, 16th Floor, Kamdhenu Commerz, Sector 14, Kharghar, Navi Mumbai – 410210</span></li>" +
+              "<li>" + I.pin + "<span><b>Prayagraj:</b> EWS-397, Kendranchal Colony, Preetam Nagar, Prayagraj – 211011</span></li>" +
             "</ul>" +
             '<div class="footer__socials">' +
               '<a href="https://facebook.com/vandanatravelexperts" target="_blank" rel="noopener" aria-label="Facebook">' + I.fb + "</a>" +
@@ -597,11 +591,10 @@
     if (ag) {
       var affils = [
         { name: "IATA", img: "iata.svg", sub: "TIDS: 96097120" },
-        { ac: "TAAI", name: "TAAI", sub: "Member", c: "#0ea5e9" },
-        { name: "TAFI", img: "tafi.png", sub: "Member" },
-        { name: "ADTOI", img: "adtoi.webp", sub: "Member" },
-        { name: "NIDHI", img: "nidhi.jpg", sub: "Registered" },
-        { name: "IATO", img: "iato.png", sub: "Member" },
+        { name: "TAFI", img: "tafi.png", sub: "" },
+        { name: "ADTOI", img: "adtoi.webp", sub: "" },
+        { name: "NIDHI", img: "nidhi.jpg", sub: "" },
+        { name: "IATO", img: "iato.png", sub: "" },
         { name: "Ministry of Tourism", img: "mot.webp", sub: "Recognition No. 2110240HE706" }
       ];
       ag.innerHTML = affils.map(affilCard).join("");
@@ -694,7 +687,8 @@
   /* ================= COUNTERS + REVEAL ================= */
   function countUp(el) {
     var target = parseFloat(el.getAttribute("data-count")); var dur = 1800, start = null;
-    function step(ts) { if (!start) start = ts; var p = Math.min((ts - start) / dur, 1); el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); else el.textContent = target; }
+    function fmt(n) { return Math.round(n).toLocaleString("en-IN"); }
+    function step(ts) { if (!start) start = ts; var p = Math.min((ts - start) / dur, 1); el.textContent = fmt(target * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); else el.textContent = fmt(target); }
     requestAnimationFrame(step);
   }
   var revealObs;
