@@ -167,7 +167,7 @@ a:focus-visible, button:focus-visible, .btn:focus-visible { outline-offset: 3px;
 .site-header.is-solid .nav__logo-text { color: var(--navy); border-color: var(--border-strong); }
 .site-header.is-solid .nav__logo-text small { color: var(--blue); opacity: 1; }
 
-.nav__menu { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.nav__menu { display: flex; align-items: center; gap: 2px; margin: 0 auto; }
 .nav__item { position: relative; }
 .nav__link {
   position: relative;
