@@ -180,3 +180,17 @@ table.ad-table{width:100%;border-collapse:collapse;font-size:.9rem}
 .ad-fatal img{height:46px;margin-bottom:14px}
 .ad-fatal h2{color:var(--a-navy);font-size:1.3rem;margin-bottom:10px}
 .ad-fatal p{color:var(--a-500);line-height:1.6;margin-bottom:20px}
+
+/* ===== Super Admin / RBAC UI ===== */
+.ad-role{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 9px;border-radius:100px;background:var(--a-bg);color:var(--a-slate);margin-bottom:8px}
+.ad-role svg{width:13px;height:13px}
+.ad-role--super{background:linear-gradient(135deg,#eef4ff,#e3ecff);color:var(--a-blue)}
+.pill--super{background:linear-gradient(135deg,#046bd2,#0353a3);color:#fff}
+.ad-you{font-size:.66rem;font-weight:700;color:var(--a-blue);background:var(--a-bg);padding:1px 6px;border-radius:100px;vertical-align:middle}
+.ad-select{padding:9px 12px;border:1px solid var(--a-border);border-radius:9px;font:inherit;font-size:.9rem;background:#fff;color:var(--a-navy)}
+.ad-panel__link{float:right;font-size:.82rem;font-weight:600;color:var(--a-blue);text-decoration:none}
+.ad-perms{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.ad-perm-group{border:1px solid var(--a-border);border-radius:10px;padding:12px 14px;background:var(--a-soft)}
+.ad-perm-group__t{font-weight:700;color:var(--a-navy);font-size:.85rem;margin-bottom:8px}
+.ad-perm{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--a-slate);padding:3px 0;cursor:pointer}
+.ad-perm input{width:15px;height:15px;accent-color:var(--a-blue)}

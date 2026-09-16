@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Up Your Admin Account — Vandana Travel Experts</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css?v=7">
+</head>
+<body class="ad-login">
+  <div class="ad-login__card">
+    <img class="ad-login__logo" src="../assets/img/logo.png" alt="Vandana Travel Experts">
+    <h1>Set up your account</h1>
+    <p>Create a password to activate your Vandana Travel Experts admin account.</p>
+    <form id="inv-form" class="ad-form">
+      <div class="ad-field"><label>Email</label><input id="inv-email" type="email" readonly></div>
+      <div class="ad-field"><label>New password</label><input id="inv-pass" type="password" autocomplete="new-password" required><div class="hint">At least 8 characters, with a letter and a number.</div></div>
+      <div class="ad-field"><label>Confirm password</label><input id="inv-conf" type="password" autocomplete="new-password" required></div>
+      <button class="ad-btn ad-btn--pri" type="submit" style="width:100%;justify-content:center">Activate account</button>
+      <div class="ad-msg"></div>
+    </form>
+  </div>
+  <script>
+  (function () {
+    function qs(n) { var m = new RegExp("[?&]" + n + "=([^&]*)").exec(location.search); return m ? decodeURIComponent(m[1].replace(/\+/g, " ")) : ""; }
+    function api(path, body) {
+      return fetch(path, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, credentials: "same-origin", body: JSON.stringify(body) })
+        .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+        .catch(function () { return { ok: false, message: "Couldn't reach the server. If you use Brave Shields or an ad-blocker, allow this site, then retry." }; });
+    }
+    var email = qs("e"), token = qs("token");
+    var f = document.getElementById("inv-form"), msg = f.querySelector(".ad-msg"), btn = f.querySelector('button[type=submit]');
+    document.getElementById("inv-email").value = email;
+    if (!email || !token) { msg.textContent = "This invitation link is invalid or incomplete."; msg.className = "ad-msg err show"; btn.disabled = true; }
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var p = document.getElementById("inv-pass").value, c = document.getElementById("inv-conf").value;
+      if (p !== c) { msg.textContent = "Passwords do not match."; msg.className = "ad-msg err show"; return; }
+      btn.classList.add("is-loading"); btn.disabled = true; msg.className = "ad-msg"; msg.textContent = "";
+      api("/api/admin/accept-invite", { email: email, token: token, password: p }).then(function (j) {
+        if (j.ok) { msg.textContent = "Account activated! Redirecting to login…"; msg.className = "ad-msg ok show"; setTimeout(function () { location.replace("login.html"); }, 1400); return; }
+        msg.textContent = j.message || "Could not activate the account."; msg.className = "ad-msg err show";
+        btn.classList.remove("is-loading"); btn.disabled = false;
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

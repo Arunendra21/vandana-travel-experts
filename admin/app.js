@@ -7,7 +7,7 @@
    ========================================================================== */
 (function () {
   "use strict";
-  var BUILD = "admin-spa-2026-09-15b";
+  var BUILD = "admin-spa-2026-09-16-rbac";
 
   /* ---------- tiny helpers ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -38,7 +38,10 @@
     eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
     star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>',
     plane: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>',
-    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>'
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+    users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'
   };
 
   /* ---------- toast ---------- */
@@ -117,20 +120,29 @@
 
   /* ============================ SHELL ============================ */
   var ME = null, SHELL_BUILT = false;
-  var NAV = [
-    ["#/dashboard", "dashboard", I.dash, "Dashboard"],
-    ["#/packages", "packages", I.box, "Packages"],
-    ["#/documents", "documents", I.file, "Documents"],
-    ["#/inquiries", "inquiries", I.mail, "Inquiries"],
-    ["#/travel", "travel", I.plane, "Travel Data"],
-    ["#/settings", "settings", I.gear, "Settings"]
-  ];
+  function isSuper() { return !!(ME && ME.isSuper); }
+  function canPerm(p) { if (!p) return true; if (isSuper()) return true; return ME && Array.isArray(ME.permissions) && ME.permissions.indexOf(p) >= 0; }
+  // [href, key, icon, label, requiredPerm|null, superOnly]
+  function navFor() {
+    var items = [
+      ["#/dashboard", "dashboard", I.dash, "Dashboard", null, false],
+      ["#/packages", "packages", I.box, "Packages", "packages.view", false],
+      ["#/documents", "documents", I.file, "Documents", "documents.view", false],
+      ["#/inquiries", "inquiries", I.mail, "Inquiries", "inquiries.view", false],
+      ["#/travel", "travel", I.plane, "Travel Data", null, false],
+      ["#/admins", "admins", I.users, "Administrators", null, true],
+      ["#/audit", "audit", I.list, "Audit Logs", null, true],
+      ["#/settings", "settings", I.gear, "Settings", null, false]
+    ];
+    return items.filter(function (n) { if (n[5] && !isSuper()) return false; return canPerm(n[4]); });
+  }
   function buildShell() {
     document.body.classList.add("ad-body");
+    var roleBadge = isSuper() ? '<span class="ad-role ad-role--super">' + I.shield + 'Super Admin</span>' : '<span class="ad-role">Admin</span>';
     document.body.innerHTML =
       '<div class="ad-shell"><aside class="ad-side"><div class="ad-side__brand"><img src="../assets/img/logo.png" alt=""><div><b>Vandana</b><span>Admin Panel</span></div></div>' +
-        '<nav class="ad-nav" id="ad-nav">' + NAV.map(function (n) { return '<a href="' + n[0] + '" data-nav="' + n[1] + '">' + n[2] + n[3] + '</a>'; }).join("") + '</nav>' +
-        '<div class="ad-side__foot"><div class="ad-side__user" id="ad-user">' + esc(ME ? ME.email : "") + '</div><button class="ad-logout" id="ad-logout">' + I.out + 'Log out</button><div class="ad-build">build ' + esc(BUILD) + '</div></div>' +
+        '<nav class="ad-nav" id="ad-nav">' + navFor().map(function (n) { return '<a href="' + n[0] + '" data-nav="' + n[1] + '">' + n[2] + n[3] + '</a>'; }).join("") + '</nav>' +
+        '<div class="ad-side__foot">' + roleBadge + '<div class="ad-side__user" id="ad-user">' + esc(ME ? (ME.name ? ME.name + " · " : "") + ME.email : "") + '</div><button class="ad-logout" id="ad-logout">' + I.out + 'Log out</button><div class="ad-build">build ' + esc(BUILD) + '</div></div>' +
       '</aside><main class="ad-main"><button class="ad-burger" id="ad-burger">' + I.menu + '</button><div id="ad-view"></div></main></div>';
     $("#ad-logout").onclick = function () {
       api("/api/admin/logout", { method: "POST" }).then(function () { location.replace("login.html"); });
@@ -171,12 +183,25 @@
           card(d.total, "Documents", (d.published || 0) + " published", "#/documents") +
         '</div>' +
         (q.email_failed ? '<div class="ad-banner ad-banner--warn">' + q.email_failed + ' inquiry email(s) failed to send. Open Inquiries to resend.</div>' : '') +
+        (isSuper() ? '<div class="ad-panel"><div class="ad-panel__h">Administrators <a class="ad-panel__link" href="#/admins">Manage →</a></div><div class="ad-panel__b" id="dash-admins">' + loadingBlock() + '</div></div>' : '') +
         '<div class="ad-panel"><div class="ad-panel__h">Integrations</div><div class="ad-panel__b">' +
           statusRow("Flight API", (a.flight && a.flight.provider) || "—", a.flight && a.flight.configured) +
           statusRow("Visa data", (a.visa && a.visa.provider) || "—", a.visa && a.visa.configured) +
           statusRow("Email", (a.email && a.email.provider) || "—", a.email && a.email.configured) +
           '<div class="ad-detail-row"><span>API keys</span><b style="color:var(--a-500)">Stored securely in Vercel — never shown here.</b></div>' +
         '</div></div>';
+      if (isSuper()) {
+        api("/api/admin/users").then(function (u) {
+          var box = $("#dash-admins"); if (!box) return;
+          if (!u.ok) { box.innerHTML = '<div class="ad-detail-row"><span>Administrators</span><b>—</b></div>'; return; }
+          var rows = u.admins || [], active = 0, sup = 0, inv = 0;
+          rows.forEach(function (x) { if (x.status === "active") active++; if (x.role === "super_admin") sup++; if (x.status === "invited") inv++; });
+          box.innerHTML = '<div class="ad-detail-row"><span>Total administrators</span><b>' + rows.length + '</b></div>' +
+            '<div class="ad-detail-row"><span>Active</span><b>' + active + '</b></div>' +
+            '<div class="ad-detail-row"><span>Super Admins</span><b>' + sup + '</b></div>' +
+            (inv ? '<div class="ad-detail-row"><span>Pending invites</span><b>' + inv + '</b></div>' : '');
+        });
+      }
     });
   }
 
@@ -524,18 +549,32 @@
     v.innerHTML = head("Settings", "Your account, integration status and the admin activity log.");
     var host = el("div"); v.appendChild(host);
     var first = params && params.first;
+    var permsHtml = isSuper() ? '<span class="pill pill--super">All permissions</span>'
+      : ((ME && ME.permissions && ME.permissions.length) ? ME.permissions.map(function (p) { return '<span class="pill pill--draft" style="margin:2px 4px 2px 0">' + esc(p) + '</span>'; }).join("") : '<span style="color:var(--a-500)">No permissions assigned yet.</span>');
     host.innerHTML =
       (first || (ME && ME.mustChange) ? '<div class="ad-banner ad-banner--warn">Please set a new password to secure your account before continuing.</div>' : '') +
-      '<div class="ad-panel"><div class="ad-panel__h">Account</div><div class="ad-panel__b">' +
-        '<div class="ad-detail-row"><span>Admin email</span><b>' + esc(ME ? ME.email : "") + '</b></div>' +
-        '<div class="ad-form" style="max-width:460px;margin-top:16px">' +
+      '<div class="ad-panel"><div class="ad-panel__h">Your profile</div><div class="ad-panel__b">' +
+        '<div class="ad-detail-row"><span>Email</span><b>' + esc(ME ? ME.email : "") + '</b></div>' +
+        '<div class="ad-detail-row"><span>Role</span><b>' + (isSuper() ? rolePill("super_admin") : rolePill("admin")) + '</b></div>' +
+        '<div class="ad-detail-row"><span>Permissions</span><b>' + permsHtml + '</b></div>' +
+        '<div class="ad-form" style="max-width:460px;margin-top:12px"><div class="ad-field"><label>Display name</label><input id="p-name" value="' + esc(ME ? (ME.name || "") : "") + '"></div><div><button class="ad-btn ad-btn--ghost" id="p-save">Save name</button></div><div class="ad-msg" id="p-msg"></div></div>' +
+      '</div></div>' +
+      '<div class="ad-panel"><div class="ad-panel__h">Change password</div><div class="ad-panel__b">' +
+        '<div class="ad-form" style="max-width:460px">' +
           '<div class="ad-field"><label>Current password</label><input type="password" id="s-cur"></div>' +
           '<div class="ad-field"><label>New password</label><input type="password" id="s-new"><div class="hint">At least 8 characters, with a letter and a number.</div></div>' +
           '<div class="ad-field"><label>Confirm new password</label><input type="password" id="s-conf"></div>' +
           '<div><button class="ad-btn ad-btn--pri" id="s-save">Change Password</button></div><div class="ad-msg" id="s-msg"></div>' +
         '</div></div></div>' +
-      '<div class="ad-panel"><div class="ad-panel__h">System &amp; integrations</div><div class="ad-panel__b" id="sys-status">' + loadingBlock() + '</div></div>' +
-      '<div class="ad-panel"><div class="ad-panel__h">Admin activity log</div><div class="ad-panel__b" id="audit-list">' + loadingBlock() + '</div></div>';
+      '<div class="ad-panel"><div class="ad-panel__h">System &amp; integrations</div><div class="ad-panel__b" id="sys-status">' + loadingBlock() + '</div></div>';
+    $("#p-save", host).onclick = function () {
+      var btn = $("#p-save", host), msg = $("#p-msg", host); btn.classList.add("is-loading"); btn.disabled = true;
+      api("/api/admin/profile", { method: "PUT", body: { name: $("#p-name", host).value } }).then(function (j) {
+        btn.classList.remove("is-loading"); btn.disabled = false;
+        if (j.ok) { if (ME) ME.name = $("#p-name", host).value; msg.textContent = "Saved ✓"; msg.className = "ad-msg ok show"; toast("Profile updated", "ok"); }
+        else { msg.textContent = j.message || "Failed."; msg.className = "ad-msg err show"; }
+      });
+    };
     $("#s-save", host).onclick = function () {
       var msg = $("#s-msg", host), cur = $("#s-cur", host).value, nw = $("#s-new", host).value, cf = $("#s-conf", host).value, btn = $("#s-save", host);
       if (nw !== cf) { msg.textContent = "New passwords do not match."; msg.className = "ad-msg err show"; return; }
@@ -551,15 +590,139 @@
       if (!j.ok) { s.innerHTML = errorBlock(j.message); var rb = s.querySelector("[data-retry]"); if (rb) rb.onclick = function () { pageSettings(params); }; return; }
       var a = j.apis || {};
       function r(k, prov, ok) { return '<div class="ad-detail-row"><span>' + k + '</span><b>' + esc(prov) + ' &nbsp;<span class="pill pill--' + (ok ? "on" : "off") + '">' + (ok ? "Configured" : "Not set") + '</span></b></div>'; }
-      s.innerHTML = r("Flight API", (a.flight && a.flight.provider) || "—", a.flight && a.flight.configured) + r("Visa data", (a.visa && a.visa.provider) || "—", a.visa && a.visa.configured) + r("Email", (a.email && a.email.provider) || "—", a.email && a.email.configured) + '<div class="ad-detail-row"><span>API keys</span><b style="color:var(--a-500)">Managed in Vercel environment variables — never shown here.</b></div>';
+      s.innerHTML = r("Flight API", (a.flight && a.flight.provider) || "—", a.flight && a.flight.configured) + r("Visa data", (a.visa && a.visa.provider) || "—", a.visa && a.visa.configured) + r("Email", (a.email && a.email.provider) || "—", a.email && a.email.configured) + '<div class="ad-detail-row"><span>API keys</span><b style="color:var(--a-500)">Managed in Vercel environment variables — never shown here.</b></div>' + (isSuper() ? '<div class="ad-detail-row"><span>Audit log</span><b><a href="#/audit">View admin activity →</a></b></div>' : '');
     });
-    api("/api/admin/audit").then(function (j) {
-      var alog = $("#audit-list", host); if (!alog) return;
-      if (!j.ok) { alog.innerHTML = errorBlock(j.message); var rb = alog.querySelector("[data-retry]"); if (rb) rb.onclick = function () { pageSettings(params); }; return; }
-      if (!j.log || !j.log.length) { alog.innerHTML = emptyBlock("No activity yet."); return; }
-      alog.innerHTML = '<div class="ad-table-wrap"><table class="ad-table"><thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Detail</th></tr></thead><tbody>' +
-        j.log.map(function (a) { return '<tr><td>' + fmtDate(a.created_at) + '</td><td>' + esc(a.admin_email || "") + '</td><td>' + esc(a.action) + '</td><td>' + esc(a.detail || "") + '</td></tr>'; }).join("") + '</tbody></table></div>';
+  }
+
+  /* ============================ ADMINISTRATORS (super only) ============================ */
+  var PERM_GROUPS = [
+    { label: "Packages", perms: ["packages.view", "packages.create", "packages.edit", "packages.delete", "packages.publish"] },
+    { label: "Inquiries", perms: ["inquiries.view", "inquiries.edit", "inquiries.delete"] },
+    { label: "Documents", perms: ["documents.view", "documents.create", "documents.edit", "documents.delete"] },
+    { label: "Media & other", perms: ["media.upload", "integrations.view", "settings.view"] }
+  ];
+  function rolePill(r) { return r === "super_admin" ? '<span class="pill pill--super">Super Admin</span>' : '<span class="pill pill--intl">Admin</span>'; }
+  function statusPill(s) { var map = { active: "on", disabled: "off", invited: "draft", archived: "off" }; return '<span class="pill pill--' + (map[s] || "draft") + '">' + esc(s) + '</span>'; }
+  function pageAdmins() {
+    setActiveNav("admins");
+    var v = view();
+    v.innerHTML = head("Administrators", "Create and manage who can access this panel and what they can do.",
+      '<a class="ad-btn ad-btn--pri" href="#/admins/new">' + I.plus + 'Add Administrator</a>');
+    var strip = el("div"); v.appendChild(strip);
+    var host = el("div", "ad-panel"); v.appendChild(host);
+    withData(host, function () { return api("/api/admin/users"); }, function (j) {
+      var rows = j.admins || [];
+      var st = { total: rows.length, active: 0, disabled: 0, invited: 0, supers: 0, admins: 0 };
+      rows.forEach(function (a) { if (a.status === "active") st.active++; if (a.status === "disabled") st.disabled++; if (a.status === "invited") st.invited++; if (a.role === "super_admin") st.supers++; else st.admins++; });
+      strip.innerHTML = '<div class="ad-cards">' +
+        '<div class="ad-stat"><b>' + st.total + '</b><span>Administrators</span></div>' +
+        '<div class="ad-stat"><b>' + st.active + '</b><span>Active</span></div>' +
+        '<div class="ad-stat"><b>' + st.disabled + '</b><span>Disabled</span><small>' + st.invited + ' invited</small></div>' +
+        '<div class="ad-stat"><b>' + st.supers + '</b><span>Super Admins</span><small>' + st.admins + ' admins</small></div></div>';
+      host.innerHTML = '<div class="ad-table-wrap"><table class="ad-table"><thead><tr><th>Administrator</th><th>Role</th><th>Status</th><th>Last login</th><th>Created</th><th>Actions</th></tr></thead><tbody>' +
+        rows.map(function (a) {
+          var isMe = ME && a.id === ME.id;
+          return '<tr data-id="' + a.id + '"><td><div class="ad-table__title">' + esc(a.name || "—") + (isMe ? ' <span class="ad-you">you</span>' : '') + '</div><div class="ad-table__sub">' + esc(a.email) + '</div></td>' +
+            '<td>' + rolePill(a.role) + '</td><td>' + statusPill(a.status) + '</td><td>' + (a.last_login ? fmtDate(a.last_login) : "—") + '</td><td>' + fmtDate(a.created_at) + '</td>' +
+            '<td><div class="ad-row-actions">' +
+              '<a class="ad-ico-btn" href="#/admins/edit/' + a.id + '" title="Edit">' + I.edit + '</a>' +
+              (a.status === "active" ? '<button class="ad-ico-btn" data-disable title="Disable">' + I.x + '</button>' : '<button class="ad-ico-btn" data-enable title="Enable">' + I.refresh + '</button>') +
+              '<button class="ad-ico-btn" data-reset title="Reset access (new invite)">' + I.shield + '</button>' +
+              '<button class="ad-ico-btn" data-del title="Archive">' + I.trash + '</button>' +
+            '</div></td></tr>';
+        }).join("") + '</tbody></table></div>';
+      $all("tr[data-id]", host).forEach(function (tr) {
+        var id = tr.getAttribute("data-id"), a = byId(rows, id);
+        function act(op, okMsg) { return function () { api("/api/admin/user?id=" + id, { method: "PUT", body: { op: op } }).then(function (r) { if (r.ok) { toast(okMsg, "ok"); if (r.inviteUrl) showInvite(a.email, r.inviteUrl); pageAdmins(); } else toast(r.message || "Failed", "err"); }); }; }
+        var db = tr.querySelector("[data-disable]"); if (db) db.onclick = function () { confirmDialog("Disable administrator?", 'Disable "' + (a.name || a.email) + '"? They will be logged out and cannot sign in until re-enabled.', "Disable").then(function (y) { if (y) act("disable", "Administrator disabled")(); }); };
+        var eb = tr.querySelector("[data-enable]"); if (eb) eb.onclick = act("enable", "Administrator enabled");
+        tr.querySelector("[data-reset]").onclick = function () { confirmDialog("Reset access?", 'Generate a new setup link for "' + a.email + '"? Their current password stops working until they set a new one.', "Reset").then(function (y) { if (y) act("reset", "New invite link generated")(); }); };
+        tr.querySelector("[data-del]").onclick = function () { confirmDialog("Archive administrator?", 'Archive "' + (a.name || a.email) + '"? They lose access immediately. Their created content and audit history are kept.', "Archive").then(function (y) { if (!y) return; api("/api/admin/user?id=" + id, { method: "DELETE" }).then(function (r) { if (r.ok) { toast("Administrator archived", "ok"); pageAdmins(); } else toast(r.message || "Failed", "err"); }); }); };
+      });
     });
+  }
+  function showInvite(email, url) {
+    var mm = modal('<h3 class="ad-modal__title">Invitation link</h3>' +
+      '<p style="color:var(--a-500);margin-bottom:12px">Email delivery isn\'t configured, so copy this one-time setup link and send it to <b>' + esc(email) + '</b>. They open it to set their own password. The link expires in 7 days.</p>' +
+      '<div class="ad-field"><textarea id="inv-url" readonly style="min-height:70px">' + esc(url) + '</textarea></div>' +
+      '<div class="ad-saverow"><button class="ad-btn ad-btn--pri" id="inv-copy">Copy link</button></div>', 560);
+    $("#inv-copy", mm.content).onclick = function () { var t = $("#inv-url", mm.content); t.select(); try { document.execCommand("copy"); toast("Copied", "ok"); } catch (e) { navigator.clipboard && navigator.clipboard.writeText(url); toast("Copied", "ok"); } };
+  }
+  function pageAdminEditor(id) {
+    setActiveNav("admins");
+    var editing = !!id, v = view();
+    v.innerHTML = head((editing ? "Edit" : "New") + " Administrator", null, '<a class="ad-btn ad-btn--ghost" href="#/admins">← Back</a>');
+    var host = el("div"); v.appendChild(host);
+    var loader = editing ? function () { return api("/api/admin/user?id=" + id); } : function () { return api("/api/admin/users"); };
+    withData(host, loader, function (j) {
+      var a = editing ? j.admin : { name: "", email: "", role: "admin", status: "new", permissions: [] };
+      var assignable = j.assignablePerms || [];
+      function permBoxes() {
+        return PERM_GROUPS.map(function (g) {
+          var boxes = g.perms.filter(function (p) { return assignable.indexOf(p) >= 0; }).map(function (p) {
+            var checked = (a.permissions || []).indexOf(p) >= 0 ? " checked" : "";
+            return '<label class="ad-perm"><input type="checkbox" class="perm-cb" value="' + p + '"' + checked + '> ' + esc(p) + '</label>';
+          }).join("");
+          return boxes ? '<div class="ad-perm-group"><div class="ad-perm-group__t">' + g.label + '</div>' + boxes + '</div>' : "";
+        }).join("");
+      }
+      host.innerHTML =
+        '<div class="ad-panel"><div class="ad-panel__h">Account</div><div class="ad-panel__b"><div class="ad-form">' +
+          '<div class="ad-grid2"><div class="ad-field"><label>Full name</label><input id="a-name" value="' + esc(a.name || "") + '"></div>' +
+          '<div class="ad-field"><label>Email ' + (editing ? "(cannot change)" : "*") + '</label><input id="a-email" type="email" value="' + esc(a.email || "") + '"' + (editing ? " readonly" : "") + '></div></div>' +
+          '<div class="ad-field" style="max-width:320px"><label>Role</label><select id="a-role"><option value="admin"' + (a.role === "admin" ? " selected" : "") + '>Admin (assigned permissions)</option><option value="super_admin"' + (a.role === "super_admin" ? " selected" : "") + '>Super Admin (full control)</option></select></div>' +
+        '</div></div></div>' +
+        '<div class="ad-panel" id="perm-panel"><div class="ad-panel__h">Permissions</div><div class="ad-panel__b"><p class="ad-note" id="perm-note"></p><div class="ad-perms" id="perm-list">' + permBoxes() + '</div></div></div>' +
+        '<div class="ad-saverow"><a class="ad-btn ad-btn--ghost" href="#/admins">Cancel</a><button class="ad-btn ad-btn--pri" id="a-save">' + (editing ? "Save changes" : "Create & get invite link") + '</button><div class="ad-msg" id="a-msg"></div></div>';
+      function refreshPermUI() {
+        var sup = $("#a-role", host).value === "super_admin";
+        $("#perm-list", host).style.opacity = sup ? ".45" : "1";
+        $("#perm-list", host).style.pointerEvents = sup ? "none" : "auto";
+        $("#perm-note", host).textContent = sup ? "Super Admins have every permission automatically." : "Tick the areas this administrator can manage. The backend enforces these on every request.";
+      }
+      $("#a-role", host).onchange = refreshPermUI; refreshPermUI();
+      $("#a-save", host).onclick = function () {
+        var msg = $("#a-msg", host), btn = $("#a-save", host);
+        var role = $("#a-role", host).value;
+        var perms = role === "super_admin" ? [] : $all(".perm-cb", host).filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
+        var payload = { name: $("#a-name", host).value, role: role, permissions: perms };
+        if (!editing) { payload.email = $("#a-email", host).value; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) { msg.textContent = "Enter a valid email."; msg.className = "ad-msg err show"; return; } }
+        btn.classList.add("is-loading"); btn.disabled = true; msg.textContent = "";
+        var req = editing ? api("/api/admin/user?id=" + id, { method: "PUT", body: payload }) : api("/api/admin/users", { method: "POST", body: payload });
+        req.then(function (r) {
+          btn.classList.remove("is-loading"); btn.disabled = false;
+          if (r.ok) { toast(editing ? "Administrator updated" : "Administrator created", "ok"); location.hash = "#/admins"; if (r.inviteUrl) setTimeout(function () { showInvite(payload.email, r.inviteUrl); }, 300); }
+          else { msg.textContent = r.message || (r.errors && r.errors.join(" ")) || "Save failed."; msg.className = "ad-msg err show"; }
+        });
+      };
+    });
+  }
+
+  /* ============================ AUDIT LOGS (super only) ============================ */
+  function pageAudit(params) {
+    setActiveNav("audit");
+    var v = view();
+    v.innerHTML = head("Audit Logs", "A record of important administrator actions. Newest first.") +
+      '<div class="ad-toolbar"><div class="ad-search">' + I.search + '<input id="au-search" placeholder="Search action, admin, detail…"></div>' +
+      '<select id="au-admin" class="ad-select"><option value="">All admins</option></select>' +
+      '<select id="au-action" class="ad-select"><option value="">All actions</option></select></div>' +
+      '<div class="ad-panel"><div id="au-host"></div></div>';
+    var host = $("#au-host"), term = "", who = "", act = "";
+    function load() {
+      withData(host, function () { return api("/api/admin/audit?q=" + encodeURIComponent(term) + "&admin=" + encodeURIComponent(who) + "&action=" + encodeURIComponent(act)); }, function (j) {
+        var sa = $("#au-admin"), sc = $("#au-action");
+        if (sa && sa.options.length <= 1 && j.admins) j.admins.forEach(function (a) { var o = document.createElement("option"); o.value = a; o.textContent = a; sa.appendChild(o); });
+        if (sc && sc.options.length <= 1 && j.actions) j.actions.forEach(function (a) { var o = document.createElement("option"); o.value = a; o.textContent = a; sc.appendChild(o); });
+        var rows = j.log || [];
+        if (!rows.length) { host.innerHTML = emptyBlock("No matching activity."); return; }
+        host.innerHTML = '<div class="ad-table-wrap"><table class="ad-table"><thead><tr><th>When</th><th>Administrator</th><th>Action</th><th>Detail</th></tr></thead><tbody>' +
+          rows.map(function (a) { return '<tr><td style="white-space:nowrap">' + fmtDate(a.created_at) + '</td><td>' + esc(a.admin_email || "—") + '</td><td><span class="pill pill--draft">' + esc(a.action) + '</span></td><td>' + esc(a.detail || "") + '</td></tr>'; }).join("") + '</tbody></table></div>';
+      });
+    }
+    $("#au-search").addEventListener("input", debounce(function () { term = this.value; load(); }, 250));
+    $("#au-admin").onchange = function () { who = this.value; load(); };
+    $("#au-action").onchange = function () { act = this.value; load(); };
+    load();
   }
 
   /* ============================ ROUTER ============================ */
@@ -572,21 +735,33 @@
     qs.split("&").forEach(function (kv) { if (!kv) return; var p = kv.split("="); params[decodeURIComponent(p[0])] = decodeURIComponent(p[1] || ""); });
     return { parts: parts, params: params };
   }
+  // sections that require a specific permission (super_admin bypasses); or super-only.
+  var SECTION_PERM = { packages: "packages.view", documents: "documents.view", inquiries: "inquiries.view" };
+  var SUPER_SECTIONS = { admins: 1, audit: 1 };
+  function denied() {
+    setActiveNav("");
+    view().innerHTML = head("Access denied") + '<div class="ad-panel"><div class="ad-panel__b"><div class="ad-empty">You don\'t have permission to view this section. <a href="#/dashboard">Back to dashboard</a>.</div></div></div>';
+  }
   function route() {
     if (!SHELL_BUILT) return;
     window.scrollTo(0, 0);
     var r = parseHash(), p = r.parts;
     var section = p[0] || "dashboard";
+    // authorization gate (UX; the backend enforces the real check)
+    if (SUPER_SECTIONS[section] && !isSuper()) return denied();
+    if (SECTION_PERM[section] && !canPerm(SECTION_PERM[section])) return denied();
     try {
       if (section === "dashboard" || section === "") return pageDashboard();
       if (section === "packages") {
-        if (p[1] === "new") return pagePackageEditor(null);
-        if (p[1] === "edit" && p[2]) return pagePackageEditor(p[2]);
+        if (p[1] === "new") { if (!canPerm("packages.create")) return denied(); return pagePackageEditor(null); }
+        if (p[1] === "edit" && p[2]) { if (!canPerm("packages.edit")) return denied(); return pagePackageEditor(p[2]); }
         return pagePackages(r.params);
       }
       if (section === "documents") return pageDocuments();
       if (section === "inquiries") return pageInquiries(r.params);
       if (section === "travel") return pageTravel();
+      if (section === "admins") { if (p[1] === "new") return pageAdminEditor(null); if (p[1] === "edit" && p[2]) return pageAdminEditor(p[2]); return pageAdmins(); }
+      if (section === "audit") return pageAudit(r.params);
       if (section === "settings") return pageSettings(r.params);
       // unknown -> dashboard
       location.hash = "#/dashboard";
